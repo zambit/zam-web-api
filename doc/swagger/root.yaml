@@ -1,0 +1,554 @@
+---
+swagger: "2.0"
+info:
+  title: "ZamZam API"
+  description: "Test"
+  version: "0.0.1"
+  
+host: "zam.me"
+basePath: "/api/v1"
+schemes:
+  - "https"
+
+consumes:
+  - application/json
+produces:
+  - application/json
+
+paths:
+  /auth/signup:
+    post:
+      summary: Create new user and get auth token
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: Create user request
+          schema:
+            $ref: "#/definitions/UserSingupRequest"
+      responses:
+        201:
+          description: User auth token
+          schema:
+            $ref: '#/definitions/UserTokenResponse'
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+
+  /auth/signin:
+    post:
+      summary: Authorize user and get auth token
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: Create user request
+          schema:
+            $ref: "#/definitions/UserSigninRequest"
+      responses:
+        200:
+          description: Authorized successfully
+          schema:
+            $ref: '#/definitions/UserTokenResponse'
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"   
+        
+  /auth/confirmation/{link}:
+    post:
+      summary: Confirm user phone
+      parameters:
+        - in: path
+          name: link
+          required: true
+          type: string
+          description: Confirmation ID
+      responses:
+        201:
+          description: Validation successfull
+          schema:
+            $ref: '#/definitions/UserTokenResponse'
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+          
+  /auth/receive/{link}:
+    post:
+      summary: Create new user from pending transaction
+      parameters:
+        - in: path
+          name: link
+          required: true
+          type: string
+          description: Recv invitation ID
+      responses:
+        204:
+          description:  User created by recv invitation
+          schema:
+            $ref: '#/definitions/UserTokenResponse'
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+
+  /user/me:
+    get:
+      summary: Get specified user info
+      responses:
+        200:
+          description: User info
+          schema:
+            $ref: "#/definitions/UserResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+        
+  /user/me/verify:
+    post:
+      summary: Create user KYC request
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: Create KYC form
+          schema:
+            $ref: "#/definitions/UserCreateKYCRequest"
+      responses:
+        201:
+          description: KYC request created
+          schema:
+            $ref: "#/definitions/UserKYCResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+    put:
+      summary: Update user KYC request info
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: Create KYC form
+          schema:
+            $ref: "#/definitions/UserUpdateKYCRequest"
+      responses:
+        200:
+          description: KYC request updated
+          schema:
+            $ref: "#/definitions/UserKYCResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+    get:
+      summary: Get user KYC request info
+      responses:
+        200:
+          description: User KYC request info
+          schema:
+            $ref: "#/definitions/UserKYCResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+
+  /user/me/refferals:
+    get:
+      summary: Get list of user refferals
+      responses:
+        200:
+          description: List of refferals
+          schema:
+            properties:
+              refferals:    
+                type: array
+                items:
+                  type: string
+                  format: uuid
+                  description: Refferal user ID
+
+  /user/me/verify/status:
+    get:
+      summary: Get user KYC status
+      responses:
+        200:
+          description: KYC status
+          schema:
+            $ref: "#/definitions/UserKYCStatusResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+  
+  /user/me/wallets:
+    post:
+      summary: Create new user wallet for given coin
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: Create wallet request
+          schema:
+            $ref: "#/definitions/UserCreateWalletRequest"
+      responses:
+        201:
+          description: New wallet has been successfully created
+          schema:
+            $ref: "#/definitions/UserWalletResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+    get:
+      summary: Get all user wallets
+      responses:
+        200:
+          description: All user wallets in a list
+          schema:
+            $ref: "#/definitions/UserAllWalletsResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+  
+  /user/me/wallets/{wallet_id}:
+    parameters:
+      - in: path
+        name: wallet_id
+        required: true
+        type: string
+        description: Wallet ID
+    get:
+      summary: Request user wallet info by wallet id
+      responses:
+        200:
+          description: Wallets list
+          schema:
+            $ref: "#/definitions/UserWalletResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+    put:
+      summary: Update wallet name
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: New wallet name
+          schema:
+            $ref: "#/definitions/UserUpdateWalletRequest"
+      responses:
+        204:
+          description: Wallet has been successfully updated
+          schema:
+            $ref: "#/definitions/UserWalletResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+    
+  /user/me/wallets/{wallet_id}/txs:
+    parameters:
+      - in: path
+        name: wallet_id
+        required: true
+        type: string
+        description: Wallet ID
+    get:
+      summary: Get all transactions or use filters
+      responses:
+        200:
+          description: Transactions list
+          schema:
+            $ref: "#/definitions/WalletAllTransactionsResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+    post:
+      summary: Send transaction
+      parameters:
+        - in: body
+          name: body
+          required: true
+          schema:
+            $ref: "#/definitions/WalletSendTransactionRequest"
+      responses:
+        201:
+          description: Pending transaction created
+          schema:
+            $ref: "#/definitions/WalletSendTransactionResponse"
+  
+  /user/me/wallets/{wallet_id}/txs/{tx_id}:
+    parameters:
+      - in: path
+        name: wallet_id
+        required: true
+        type: string
+        description: Wallet ID
+      - in: path
+        name: tx_id
+        required: true
+        type: string
+        description: Transaction ID
+    get:
+      summary: Get transaction with specified ID
+      responses:
+        200:
+          description: Transaction
+          schema:
+            $ref: "#/definitions/WalletTransactionResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+
+definitions:
+  UserSingupRequest:
+    properties:
+      phone:
+        type: string
+        description: Valid phone number of the user
+      password:
+        type: string
+        format: password
+      password_confirmation:
+        type: string
+        format: password
+      refferer_phone:
+        type: string
+        description: Valid phone of person which sent invite which leads to this call
+    required:
+      - phone
+      - password
+      - password_confirmation
+  
+  UserTokenResponse:
+    properties:
+      token:
+        type: string
+        description: User authorization token
+        example: "asdfjbkasfkjasdfl"
+    required:
+      - token
+  
+  UserSigninRequest:
+    properties:
+      phone:
+        type: string
+        description: Valid phone number of already created user
+      password:
+        type: string
+        format: password
+        description: User passowrd
+    required:
+      - phone
+      - password
+
+  User:
+    properties:
+      id:
+        type: string
+        description: Unique user identifier
+      phone:
+        type: string
+        description: User phone in international form
+      refferer_id:
+        type: string
+        description: Identifier or user refferer
+      registered:
+        type: string
+        description: Date when user registration occurs
+        format: date-time
+        example: 2017-07-21T17:32:28Z
+  
+  UserResponse:
+    properties:
+      user:
+        $ref: "#/definitions/User"
+
+  UserKYCData:
+    properties:
+      user_id:
+        type: string
+        description: User reference
+      name:
+        type: string
+        description: User name
+      surname:
+        type: string
+        description: User surname
+      birthdate:
+        type: string
+        description: Date of the user birthdate
+        format: date
+        example: 1900-07-21T17:32:28Z
+      country:
+        type: string
+        description: Main user citizenship
+        example: Ethiopia
+      address:
+        type: string
+        description: User living address
+      emal:
+        type: string
+        format: email
+  
+  UserCreateKYCRequest:
+    $ref: "#/definitions/UserKYCData"
+  
+  UserUpdateKYCRequest:
+    $ref: "#/definitions/UserKYCData"
+
+  UserKYCResponse:
+    properties:
+      kyc:
+        $ref: "#/definitions/UserKYCData"
+  
+  UserKYCStatus:
+    type: string
+    enum:
+      - pending
+      - rejected
+      - verified
+  
+  UserKYCStatusResponse:
+    properties:
+      status:
+        $ref: "#/definitions/UserKYCStatus"
+  
+  CoinType:
+    type: string
+    description: Specifies coin type
+    enum:
+      - eth
+      - btc
+      - btcc
+      - zam
+
+  UserCreateWalletRequest:
+    properties:
+      coin:
+        $ref: "#/definitions/CoinType"
+      wallet_name:
+        type: string
+        description: Optional name for user wallet
+    required:
+      - coin
+  
+  UserWalletData:
+    type: object
+    properties:
+      id:
+        type: string
+        format: uuid
+        description: Unique wallet id
+      coin:
+        $ref: "#/definitions/CoinType"
+      wallet_name:
+        type: string
+        description: Optional name for user wallet
+      address:
+        type: string
+        description: Real address inside coin blockchain
+      balance:
+        type: number
+        description: Wallet balance
+    required:
+      - id
+      - coin
+      - wallet_name
+      - address
+      - balance
+
+  UserWalletResponse:
+    properties:
+      wallet:
+        $ref: "#/definitions/UserWalletData"
+  
+  UserAllWalletsResponse:
+    properties:
+      wallets:
+        items:
+          $ref: "#/definitions/UserWalletData"
+
+  UserUpdateWalletRequest:
+    properties:
+      name:
+        description: Update wallet name
+
+  WalletTransactionStatus:
+    description: Describes transaction status
+    type: string
+    enum:
+      - pending
+      - awaiting_recipient
+      - awaiting_confirmations
+      - done
+      - cancelled
+      - failed
+
+  WalletTransactionData:
+    properties:
+      id:
+        type: string
+        description: Unique identifier of the transaction
+      direction:
+        type: string
+        enum:
+          - incoming
+          - outgoing
+      status:
+        $ref: "#/definitions/WalletTransactionStatus"
+      coin:
+        $ref: "#/definitions/CoinType"
+      recipient:
+        type: string
+        description: |
+          'Recipinet of this transaction, on of "me", "coin_address", "user_id"'
+      amount:
+        type: number
+        description: Amount of transferred coins
+    required:
+      - id
+      - direction
+      - recipient
+      - amount
+  
+  WalletSendTransactionRequest:
+    properties:
+      recipient:
+        type: string
+        description: |
+          'Recipinet of this transaction, on of "me", "coin_address", "user_id"'
+      amount:
+        type: number
+        description: Amount of transferred coins
+  
+  WalletSendTransactionResponse:
+    properties:
+      transaction:
+        $ref: "#/definitions/WalletTransactionData"
+  
+  WalletTransactionResponse:
+    properties:
+      transaction:
+        $ref: "#/definitions/WalletTransactionData"
+
+  WalletAllTransactionsResponse:
+    properties:
+      transactions:
+        items:
+          $ref: "#/definitions/WalletTransactionData"
+
+  Error:
+    description: Describes error occured to the user
+    type: object
+    properties:
+      message:
+        type: string
