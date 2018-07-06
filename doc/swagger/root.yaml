@@ -238,42 +238,42 @@ paths:
             $ref: "#/definitions/Error"
 
   /user/me/txs:
-    parameters:
-      - in: query
-        name: coin
-        required: false
-        type: string
-        description: "Filter by: coin name"
-      - in: query
-        name: wallet_id
-        required: false
-        type: string
-        description: "Filter by: wallet ID"
-      - in: query
-        name: recipient
-        required: false
-        type: string
-        description: "Filter by: Recipient address"
-      - in: query
-        name: from_time
-        type: string
-        format: date-time
-      - in: query
-        name: until_time
-        type: string
-        format: date-time
-      - in: query
-        name: page
-        type: string
-        required: false
-        description: Reference to the page
-      - in: query
-        name: count
-        type: integer
-        required: false
-        description: Number of items to show on the page
     get:
       summary: Get all transactions or use filters
+      parameters:
+        - in: query
+          name: coin
+          required: false
+          type: string
+          description: "Filter by: coin name"
+        - in: query
+          name: wallet_id
+          required: false
+          type: string
+          description: "Filter by: wallet ID"
+        - in: query
+          name: recipient
+          required: false
+          type: string
+          description: "Filter by: Recipient address"
+        - in: query
+          name: from_time
+          type: string
+          format: date-time
+        - in: query
+          name: until_time
+          type: string
+          format: date-time
+        - in: query
+          name: page
+          type: string
+          required: false
+          description: Reference to the page
+        - in: query
+          name: count
+          type: integer
+          required: false
+          description: Number of items to show on the page
       responses:
         200:
           description: Transactions list
