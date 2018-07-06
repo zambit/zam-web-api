@@ -152,19 +152,6 @@ paths:
                   type: string
                   format: uuid
                   description: Refferal user ID
-
-  /user/me/verify/status:
-    get:
-      summary: Get user KYC status
-      responses:
-        200:
-          description: KYC status
-          schema:
-            $ref: "#/definitions/UserKYCStatusResponse"
-        default:
-          description: In case of any error
-          schema:
-            $ref: "#/definitions/Error"
   
   /user/me/wallets:
     post:
@@ -403,9 +390,20 @@ definitions:
       address:
         type: string
         description: User living address
-      emal:
+      email:
         type: string
         format: email
+      status:
+        $ref: "#/definitions/UserKYCStatus"
+    required:
+      - user_id
+      - name
+      - surname
+      - birthdate
+      - country
+      - address
+      - email
+      - status
   
   UserCreateKYCRequest:
     $ref: "#/definitions/UserKYCData"
@@ -421,11 +419,6 @@ definitions:
       - pending
       - rejected
       - verified
-  
-  UserKYCStatusResponse:
-    properties:
-      status:
-        $ref: "#/definitions/UserKYCStatus"
   
   CoinType:
     type: string
