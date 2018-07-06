@@ -20,3 +20,6 @@
 *.iml
 out
 gen
+
+# go-dep
+vendor
