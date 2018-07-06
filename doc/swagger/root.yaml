@@ -126,24 +126,6 @@ paths:
           description: In case of any error
           schema:
             $ref: "#/definitions/Error"
-    put:
-      summary: Update user KYC request info
-      parameters:
-        - in: body
-          name: body
-          required: true
-          description: Create KYC form
-          schema:
-            $ref: "#/definitions/UserUpdateKYCRequest"
-      responses:
-        200:
-          description: KYC request updated
-          schema:
-            $ref: "#/definitions/UserKYCResponse"
-        default:
-          description: In case of any error
-          schema:
-            $ref: "#/definitions/Error"
     get:
       summary: Get user KYC request info
       responses:
@@ -205,6 +187,27 @@ paths:
             $ref: "#/definitions/Error"
     get:
       summary: Get all user wallets
+      parameters:
+        - in: query
+          name: coin
+          required: false
+          type: string
+          description: "Filter by: coin name"
+        - in: query
+          name: wallet_id
+          required: false
+          type: string
+          description: Wallet ID
+        - in: query
+          name: page
+          type: string
+          required: false
+          description: Reference to the page
+        - in: query
+          name: count
+          type: integer
+          required: false
+          description: Number of items to show on the page
       responses:
         200:
           description: All user wallets in a list
@@ -233,32 +236,42 @@ paths:
           description: In case of any error
           schema:
             $ref: "#/definitions/Error"
-    put:
-      summary: Update wallet name
-      parameters:
-        - in: body
-          name: body
-          required: true
-          description: New wallet name
-          schema:
-            $ref: "#/definitions/UserUpdateWalletRequest"
-      responses:
-        204:
-          description: Wallet has been successfully updated
-          schema:
-            $ref: "#/definitions/UserWalletResponse"
-        default:
-          description: In case of any error
-          schema:
-            $ref: "#/definitions/Error"
-    
-  /user/me/wallets/{wallet_id}/txs:
+
+  /user/me/txs:
     parameters:
-      - in: path
-        name: wallet_id
-        required: true
+      - in: query
+        name: coin
+        required: false
         type: string
-        description: Wallet ID
+        description: "Filter by: coin name"
+      - in: query
+        name: wallet_id
+        required: false
+        type: string
+        description: "Filter by: wallet ID"
+      - in: query
+        name: recipient
+        required: false
+        type: string
+        description: "Filter by: Recipient address"
+      - in: query
+        name: from_time
+        type: string
+        format: date-time
+      - in: query
+        name: until_time
+        type: string
+        format: date-time
+      - in: query
+        name: page
+        type: string
+        required: false
+        description: Reference to the page
+      - in: query
+        name: count
+        type: integer
+        required: false
+        description: Number of items to show on the page
     get:
       summary: Get all transactions or use filters
       responses:
@@ -284,20 +297,15 @@ paths:
           schema:
             $ref: "#/definitions/WalletSendTransactionResponse"
   
-  /user/me/wallets/{wallet_id}/txs/{tx_id}:
+  /user/me/txs/{tx_id}:
     parameters:
-      - in: path
-        name: wallet_id
-        required: true
-        type: string
-        description: Wallet ID
       - in: path
         name: tx_id
         required: true
         type: string
         description: Transaction ID
     get:
-      summary: Get transaction with specified ID
+      summary: Get transaction for specified ID
       responses:
         200:
           description: Transaction
@@ -401,9 +409,6 @@ definitions:
   
   UserCreateKYCRequest:
     $ref: "#/definitions/UserKYCData"
-  
-  UserUpdateKYCRequest:
-    $ref: "#/definitions/UserKYCData"
 
   UserKYCResponse:
     properties:
@@ -473,14 +478,15 @@ definitions:
   
   UserAllWalletsResponse:
     properties:
+      сount:
+        type: integer
+        description: Count of returned transactions
+      next:
+        type: string
+        description: Reference to the next page
       wallets:
         items:
           $ref: "#/definitions/UserWalletData"
-
-  UserUpdateWalletRequest:
-    properties:
-      name:
-        description: Update wallet name
 
   WalletTransactionStatus:
     description: Describes transaction status
@@ -522,6 +528,9 @@ definitions:
   
   WalletSendTransactionRequest:
     properties:
+      wallet_id:
+        type: string
+        description: Wallet for featured transaction
       recipient:
         type: string
         description: |
@@ -542,6 +551,12 @@ definitions:
 
   WalletAllTransactionsResponse:
     properties:
+      сount:
+        type: integer
+        description: Count of returned transactions
+      next:
+        type: string
+        description: Reference to the next page
       transactions:
         items:
           $ref: "#/definitions/WalletTransactionData"
