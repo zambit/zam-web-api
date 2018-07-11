@@ -3,11 +3,13 @@ package root
 import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"gitlab.com/ZamzamTech/wallet-api/config"
+	"strings"
 )
 
 // Create and initialize root command for given viper instance
-func Create(v *viper.Viper) cobra.Command {
-	var config string
+func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
+	var configPath string
 
 	command := cobra.Command{
 		Use: "wallet-api",
@@ -16,9 +18,9 @@ func Create(v *viper.Viper) cobra.Command {
 				return
 			}
 
-			if config != "" {
+			if configPath != "" {
 				// Trying to open config
-				v.SetConfigFile(config)
+				v.SetConfigFile(configPath)
 
 				// Attempts to load configuration
 				err = v.ReadInConfig()
@@ -27,12 +29,18 @@ func Create(v *viper.Viper) cobra.Command {
 				}
 			}
 
-			return nil
+			// allow env prefixes
+			v.SetEnvPrefix("WA")
+			v.SetEnvKeyReplacer(strings.NewReplacer(".", "_"))
+			v.AutomaticEnv()
+
+			// Unmarshal it
+			return v.Unmarshal(cfg)
 		},
 	}
 
 	command.Flags().StringVarP(
-		&config, "config", "c", "", "specifies configuration file to load from",
+		&configPath, "config", "c", "", "specifies configuration file to load from",
 	)
 	command.Flags().StringP(
 		"env", "e", "test", "specifies current environment (prod/dev/test)",

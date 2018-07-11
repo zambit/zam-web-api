@@ -5,14 +5,14 @@ import (
 
 	"bytes"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/onsi/ginkgo/extensions/table"
-	"github.com/spf13/viper"
-	"gitlab.com/ZamzamTech/wallet-api/config"
-	"gitlab.com/ZamzamTech/wallet-api/cmd/server"
-	"gitlab.com/ZamzamTech/wallet-api/cmd/root"
+	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
+	"github.com/spf13/viper"
+	"gitlab.com/ZamzamTech/wallet-api/cmd/root"
+	"gitlab.com/ZamzamTech/wallet-api/cmd/server"
+	"gitlab.com/ZamzamTech/wallet-api/config"
 )
 
 func TestCmd(t *testing.T) {
@@ -21,7 +21,7 @@ func TestCmd(t *testing.T) {
 }
 
 var exampleConfigStream = bytes.NewBuffer([]byte(
-`
+	`
 env: example
 server:
     host: "example.org"
@@ -46,6 +46,13 @@ var exampleArgs2 = []string{
 	"--db.uri", "postgresql://sample:sample@sample.net/sample",
 }
 
+var exampleEnc = map[string]string{
+	"WA_ENV": "poof",
+	"WA_SERVER_HOST": "poof.org",
+	"WA_SERVER_PORT": "5115",
+	"WA_DB_URI": "postgresql://poof:poof@poof.org/poof",
+}
+
 var _ = Describe("testing commands", func() {
 	var v *viper.Viper
 	var rootCmd cobra.Command
@@ -53,8 +60,8 @@ var _ = Describe("testing commands", func() {
 	BeforeEach(func() {
 		v = viper.New()
 		config.Init(v)
-		rootCmd = root.Create(v)
-		serverCmd = server.Create(v)
+		rootCmd = root.Create(v, nil)
+		serverCmd = server.Create(v, nil)
 		rootCmd.AddCommand(&serverCmd)
 	})
 
