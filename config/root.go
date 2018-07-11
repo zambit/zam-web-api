@@ -22,7 +22,7 @@ type RootScheme struct {
 // Init set default values
 func Init(v *viper.Viper) {
 	v.SetDefault("env", "test")
-	v.SetDefault("db.uri", "postgresql://postgres:postgres@localhost:5433/postgres")
+	v.SetDefault("db.uri", "postgresql://postgres:postgres@localhost:5432/postgres")
 	v.SetDefault("server.host", "localhost")
 	v.SetDefault("server.port", 9999)
 	v.SetDefault("server.auth.token_expire", time.Hour*24)

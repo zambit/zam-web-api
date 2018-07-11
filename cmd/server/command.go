@@ -30,11 +30,11 @@ func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 		},
 	}
 	// add common flags
-	command.Flags().StringP("server.host", "l", "localhost", "host to serve on")
-	command.Flags().StringP("server.port", "p", "port", "port to serve on")
+	command.Flags().StringP("server.host", "l", v.GetString("server.host"), "host to serve on")
+	command.Flags().IntP("server.port", "p", v.GetInt("server.port"), "port to serve on")
 	command.Flags().String(
 		"db.uri",
-		"postgresql://postgres:postgres@localhost:5433/postgres",
+		v.GetString("db.uri"),
 		"postgres connection uri",
 	)
 	v.BindPFlags(command.Flags())
