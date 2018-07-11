@@ -33,7 +33,7 @@ func WrapHandler(handler HandlerFunc) gin.HandlerFunc {
 		}
 
 		// collect errors
-		errors := make([]error, 0, 1 + len(c.Errors))
+		errors := make([]error, 0, 1+len(c.Errors))
 		if err != nil {
 			// it's expect that errors will come from validator or in form of errors views
 			// other errors are interpreted as internal errors
@@ -48,18 +48,17 @@ func WrapHandler(handler HandlerFunc) gin.HandlerFunc {
 				errors = append(errors, e)
 				code = e.Code
 			default:
-				// TODO HIJACK find the way te determine empty request body
-				if e.Error() == "EOF" {
-					errors = append(errors, ErrorView{Message: "Unexpected end of body"})
-				} else {
-					errors = append(errors, e)
-				}
+				errors = append(errors, ErrorView{Message: e.Error()})
 
 				code = http.StatusInternalServerError
 			}
 		}
 		// append additional errors collected while request handling
 		for _, e := range c.Errors {
+			if e.Err == err {
+				continue
+			}
+
 			errors = append(errors, e)
 			if e.Type == gin.ErrorTypePrivate {
 				// promote status to 500 in case of private error

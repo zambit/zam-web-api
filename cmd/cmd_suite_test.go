@@ -47,10 +47,10 @@ var exampleArgs2 = []string{
 }
 
 var exampleEnc = map[string]string{
-	"WA_ENV": "poof",
+	"WA_ENV":         "poof",
 	"WA_SERVER_HOST": "poof.org",
 	"WA_SERVER_PORT": "5115",
-	"WA_DB_URI": "postgresql://poof:poof@poof.org/poof",
+	"WA_DB_URI":      "postgresql://poof:poof@poof.org/poof",
 }
 
 var _ = Describe("testing commands", func() {

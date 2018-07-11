@@ -1,10 +1,10 @@
 package db
 
 import (
+	"context"
 	"database/sql"
 	"fmt"
 	"github.com/lib/pq"
-	"context"
 )
 
 // Db is wrapper around go-pg/pg DB object aimed to support some additional functionary

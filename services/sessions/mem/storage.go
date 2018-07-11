@@ -9,8 +9,8 @@ import (
 )
 
 type valWithExpire struct {
-	val interface{}
-	expireAt time.Time
+	val       interface{}
+	expireAt  time.Time
 	createdAt time.Time
 }
 
@@ -35,8 +35,8 @@ func (s *memStorage) New(data interface{}, expireAfter time.Duration) (sessions.
 	defer s.guard.Unlock()
 
 	s.values[string(token)] = valWithExpire{
-		val: data,
-		expireAt: time.Now().Add(expireAfter),
+		val:       data,
+		expireAt:  time.Now().Add(expireAfter),
 		createdAt: time.Now(),
 	}
 
@@ -62,8 +62,8 @@ func (s *memStorage) RefreshToken(oldToken sessions.Token) (newToken sessions.To
 		return
 	}
 	s.values[string(oldToken)] = valWithExpire{
-		val: val.val,
-		expireAt: time.Now().Add(val.expireAt.Sub(val.createdAt)),
+		val:       val.val,
+		expireAt:  time.Now().Add(val.expireAt.Sub(val.createdAt)),
 		createdAt: time.Now(),
 	}
 	return

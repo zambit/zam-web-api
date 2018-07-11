@@ -9,7 +9,7 @@ type Scheme struct {
 	Host string
 	Port int
 
-	Auth struct{
+	Auth struct {
 		TokenExpire time.Duration
 	}
 }

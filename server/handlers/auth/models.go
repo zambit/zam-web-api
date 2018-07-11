@@ -2,8 +2,8 @@ package auth
 
 // UserSignupRequest represents user signup request
 type UserSignupRequest struct {
-	Phone                string  `json:"phone" validate:"required"`
-	Password             string  `json:"password" validate:"required,eqfield=Password"`
-	PasswordConfirmation string  `json:"password_confirmation" validate:"required"`
+	Phone                string  `validate:"required,min=5" json:"phone"`
+	Password             string  `validate:"required,min=5,eqfield=Password" json:"password"`
+	PasswordConfirmation string  `validate:"required" json:"password_confirmation" `
 	ReferrerPhone        *string `json:"referrer_phone"`
 }

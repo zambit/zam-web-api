@@ -5,10 +5,10 @@ create table user_statuses (
 create table users (
   id serial primary key,
   phone varchar(255),
-  status_id integer,
   password text,
-  referrer_id integer,
   registered_at time without time zone,
+  referrer_id integer,
+  status_id integer,
   constraint users_referrer_id_fk foreign key (referrer_id) references users(id)
   on delete set null,
   constraint user_statuses_id_fk foreign key (status_id) references user_statuses(id)

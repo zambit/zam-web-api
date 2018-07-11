@@ -1,11 +1,11 @@
 package middlewares
 
 import (
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"fmt"
 	"github.com/gin-gonic/gin"
+	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	"net/http"
 	"strings"
-	"fmt"
 )
 
 // AuthMiddlewareFactory creates auth middleware using session validation via given storage
@@ -61,7 +61,7 @@ func abortUnauthorized(c *gin.Context, message string) {
 // setUnauthorized
 func abortMiddlware(c *gin.Context, code int, message string) {
 	c.JSON(code, map[string]interface{}{
-		"code": code,
+		"code":    code,
 		"message": message,
 	})
 	c.Abort()

@@ -1,8 +1,8 @@
 package stub
 
 import (
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
 	"github.com/sirupsen/logrus"
+	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
 )
 
 //
@@ -21,10 +21,9 @@ func (n stubNotificator) Send(action string, data interface{}, level notificatio
 	n.logger.WithFields(
 		logrus.Fields{
 			"action": action,
-			"level": level,
-			"data": data,
+			"level":  level,
+			"data":   data,
 		},
 	).Infof("notification send")
 	return nil
 }
-

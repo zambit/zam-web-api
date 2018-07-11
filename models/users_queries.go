@@ -61,7 +61,6 @@ func GetUserByPhone(tx db.ITx, phone string) (user User, err error) {
 
 // CreateUser create user with given status returns new user representation
 func CreateUser(tx db.ITx, user User) (newUser User, err error) {
-	// TODO may be locally cached
 	statusID, err := getUserStatusID(tx, user.Status)
 	if err != nil {
 		err = ErrInvalidUserID
@@ -130,6 +129,7 @@ func ChangeUserStatus(tx db.ITx, user User, status UserStatusName) (newUser User
 }
 
 func getUserStatusID(tx db.ITx, status UserStatusName) (id int64, err error) {
+	// TODO may be locally cached
 	res := tx.QueryRow(`SELECT id FROM user_statuses WHERE name = $1`, status)
 
 	err = res.Scan(&id)
@@ -164,8 +164,8 @@ func doUserQuery(tx db.ITx, query string, args ...interface{}) (user User, err e
 	}
 
 	// query referrer if it present
-	if user.ReferrerID != 0 {
-		referrerPhone, rErr := GetUserPhoneByID(tx, user.ReferrerID)
+	if user.ReferrerID != nil {
+		referrerPhone, rErr := GetUserPhoneByID(tx, *user.ReferrerID)
 		if rErr != nil {
 			if rErr != ErrUserNotFound {
 				err = rErr

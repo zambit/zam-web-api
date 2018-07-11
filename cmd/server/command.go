@@ -1,19 +1,21 @@
 package server
 
 import (
+	"fmt"
+	"github.com/gin-gonic/gin"
+	"github.com/gin-gonic/gin/binding"
+	"github.com/go-playground/validator"
+	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gitlab.com/ZamzamTech/wallet-api/config"
-	"go.uber.org/dig"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions/mem"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
-	"github.com/sirupsen/logrus"
-	"github.com/gin-gonic/gin"
-	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth"
-	"fmt"
 	serverconf "gitlab.com/ZamzamTech/wallet-api/config/server"
+	"gitlab.com/ZamzamTech/wallet-api/db"
+	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/static"
+	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
+	"gitlab.com/ZamzamTech/wallet-api/services/sessions/mem"
+	"go.uber.org/dig"
 )
 
 // Create and initialize server command for given viper instance
@@ -36,6 +38,19 @@ func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 	v.BindPFlags(command.Flags())
 
 	return command
+}
+
+// ginValidatorV9 overrides default gin validator
+type ginValidatorV9 struct {
+	validator *validator.Validate
+}
+
+func (v ginValidatorV9) ValidateStruct(val interface{}) error {
+	return v.validator.Struct(val)
+}
+
+func (v ginValidatorV9) Engine() interface{} {
+	return v.validator
 }
 
 // serverMain
@@ -90,6 +105,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 			gin.Recovery(),
 			gin.Logger(),
 		)
+		binding.Validator = ginValidatorV9{validator: validator.New()}
 		return engine
 	})
 	if err != nil {
@@ -107,7 +123,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 	// Run server!
 	err = c.Invoke(func(engine *gin.Engine, dependencies auth.Dependencies) error {
 		auth.Register(dependencies)
-		static.Refgister(engine)
+		static.Register(engine)
 		return engine.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))
 	})
 	return

@@ -6,7 +6,7 @@ import (
 )
 
 // Register adds static routes such as not found
-func Refgister(engine *gin.Engine) {
+func Register(engine *gin.Engine) {
 	engine.NoRoute(func(c *gin.Context) {
 		c.JSON(404, base.ErrorView{
 			Message: "Not found",

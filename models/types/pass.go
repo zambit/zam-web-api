@@ -2,6 +2,9 @@ package types
 
 import (
 	"golang.org/x/crypto/bcrypt"
+	"fmt"
+	"github.com/pkg/errors"
+	"reflect"
 )
 
 const defaultCost = 8
@@ -21,4 +24,24 @@ func (pswd Password) Compare(rawPassword string) (bool, error) {
 		return false, err
 	}
 	return true, nil
+}
+
+// // Value implements sql.Valuer interface
+// func (pswd Password) Value() (driver.Value, error) {
+// 	panic("implement me")
+// }
+
+// Scan implements sql.Scanner interface to support assignment from DB
+func (pswd *Password) Scan(src interface{}) error {
+	if src == nil {
+		*pswd = []byte{}
+		return nil
+	} else if s, ok := src.(string); ok {
+		*pswd = []byte(s)
+		return nil
+	}
+	return errors.WithStack(fmt.Errorf(
+		"unexpected type received while scanning passowrd field: expect string, receive %s",
+		reflect.TypeOf(src).Name(),
+	))
 }
