@@ -26,4 +26,5 @@ func Init(v *viper.Viper) {
 	v.SetDefault("server.host", "localhost")
 	v.SetDefault("server.port", 9999)
 	v.SetDefault("server.auth.token_expire", time.Hour*24)
+	v.SetDefault("server.auth.token_name", "Bearer")
 }

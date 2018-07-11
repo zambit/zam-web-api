@@ -6,6 +6,7 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	"net/http"
 	"strings"
+	"github.com/pkg/errors"
 )
 
 // AuthMiddlewareFactory creates auth middleware using session validation via given storage
@@ -14,19 +15,13 @@ func AuthMiddlewareFactory(
 	tokenName string,
 ) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// get token
-		authHeader := c.GetHeader("Authorization")
-		if authHeader == "" {
-			abortUnauthorized(c, "auth header is empty")
-			return
-		}
-		parts := strings.Split(authHeader, " ")
-		if len(parts) != 2 || parts[0] == tokenName {
-			abortUnauthorized(c, fmt.Sprintf("auth header is wrong, expect %s token", tokenName))
+		authToken, err := GetAuthTokenFromContext(c, tokenName)
+		if err != nil {
+			abortUnauthorized(c, err.Error())
 		}
 
 		// ensure storage have this token
-		data, err := sessStorage.Get(sessions.Token(parts[1]))
+		data, err := sessStorage.Get(sessions.Token(authToken))
 		if err != nil {
 			switch err {
 			case sessions.ErrNotFound, sessions.ErrUnexpectedToken, sessions.ErrExpired:
@@ -42,6 +37,21 @@ func AuthMiddlewareFactory(
 		// continue handlers
 		c.Next()
 	}
+}
+
+// GetAuthTokenFromContext gets auth token from request headers or return error.
+// Temporary placed here.
+func GetAuthTokenFromContext(c *gin.Context, tokenName string) (string, error) {
+	// get token
+	authHeader := c.GetHeader("Authorization")
+	if authHeader == "" {
+		return "", errors.New("Authorization header is empty")
+	}
+	parts := strings.Split(authHeader, " ")
+	if len(parts) != 2 || parts[0] == tokenName {
+		return "", fmt.Errorf("auth header is wrong, expect %s token", tokenName)
+	}
+	return parts[1], nil
 }
 
 // GetUserDataFromContext gets user data extracted from session storage by auth-token during middleware work
@@ -61,8 +71,12 @@ func abortUnauthorized(c *gin.Context, message string) {
 // setUnauthorized
 func abortMiddlware(c *gin.Context, code int, message string) {
 	c.JSON(code, map[string]interface{}{
-		"code":    code,
-		"message": message,
+		"result": false,
+		"errors": []interface{}{
+			map[string]interface{}{
+				"message": message,
+			},
+		},
 	})
 	c.Abort()
 }

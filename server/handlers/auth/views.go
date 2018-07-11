@@ -4,3 +4,8 @@ package auth
 type UserTokenResponse struct {
 	Token string `json:"token"`
 }
+
+// UserPhoneResponse represents user auth check response
+type UserPhoneResponse struct {
+	Phone string `json:"phone"`
+}

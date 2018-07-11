@@ -10,6 +10,7 @@ type Scheme struct {
 	Port int
 
 	Auth struct {
+		TokenName   string
 		TokenExpire time.Duration
 	}
 }

@@ -83,7 +83,7 @@ func (s *memStorage) Get(token sessions.Token) (data interface{}, err error) {
 		err = sessions.ErrNotFound
 		return
 	}
-	if val.expireAt.Before(time.Now()) {
+	if val.expireAt.After(time.Now()) {
 		err = sessions.ErrExpired
 		return
 	}
@@ -111,7 +111,7 @@ func (s *memStorage) Delete(token sessions.Token) (err error) {
 
 // validateToken validates token
 func validateToken(token sessions.Token) (err error) {
-	_, err = uuid.FromBytes(token)
+	_, err = uuid.ParseBytes(token)
 	if err != nil {
 		err = errors.Wrap(sessions.ErrUnexpectedToken, err.Error())
 	}

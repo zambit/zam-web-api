@@ -16,6 +16,8 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions/mem"
 	"go.uber.org/dig"
+	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
 )
 
 // Create and initialize server command for given viper instance
@@ -91,13 +93,6 @@ func serverMain(cfg config.RootScheme) (err error) {
 		return
 	}
 
-	err = c.Provide(func() gin.HandlerFunc {
-		return nil
-	}, dig.Name("auth"))
-	if err != nil {
-		return
-	}
-
 	// provide gin engine
 	err = c.Provide(func(logger logrus.FieldLogger) *gin.Engine {
 		engine := gin.New()
@@ -119,6 +114,11 @@ func serverMain(cfg config.RootScheme) (err error) {
 	if err != nil {
 		return
 	}
+
+	// provide auth middleware
+	err = c.Provide(func(sessStorage sessions.IStorage) gin.HandlerFunc {
+		return middlewares.AuthMiddlewareFactory(sessStorage, cfg.Server.Auth.TokenName)
+	}, dig.Name("auth"))
 
 	// Run server!
 	err = c.Invoke(func(engine *gin.Engine, dependencies auth.Dependencies) error {

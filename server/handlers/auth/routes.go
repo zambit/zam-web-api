@@ -29,5 +29,15 @@ func Register(deps Dependencies) gin.IRouter {
 	group.POST("/signup", base.WrapHandler(SignupHandlerFactory(
 		deps.Db, deps.SessStorage, deps.Notificator, deps.Conf.Auth.TokenExpire,
 	)))
+	group.POST("/signin", base.WrapHandler(SigninHandlerFactory(
+		deps.Db, deps.SessStorage, deps.Conf.Auth.TokenExpire,
+	)))
+	group.DELETE("/signout", deps.AuthMiddleware, base.WrapHandler(SignoutHandlerFactory(
+		deps.SessStorage, deps.Conf.Auth.TokenName,
+	)))
+	group.POST("/refresh_token", deps.AuthMiddleware, base.WrapHandler(RefreshTokenHandlerFactory(
+		deps.SessStorage, deps.Conf.Auth.TokenName, deps.Conf.Auth.TokenExpire,
+	)))
+	group.GET("/check", deps.AuthMiddleware, base.WrapHandler(CheckHandlerFactory()))
 	return group
 }

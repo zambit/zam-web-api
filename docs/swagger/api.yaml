@@ -54,8 +54,32 @@ paths:
         default:
           description: In case of any error
           schema:
-            $ref: "#/definitions/Error"   
-        
+            $ref: "#/definitions/Error"
+  /auth/signout:
+    delete:
+      summary: Invalidates user's current authorization session
+      responses:
+        200:
+          description: Ok, token session invalidated
+          schema:
+            $ref: "#/definitions/BaseResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+  /auth/check:
+    get:
+      summary: Checks if user authorized, returns his phone on success
+      responses:
+        200:
+          description: Ok, user authorized
+          schema:
+            $ref: "#/definitions/UserPhoneResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+
   /auth/confirmation/{link}:
     post:
       summary: Confirm user phone
@@ -323,15 +347,40 @@ definitions:
       - password
       - password_confirmation
   
+  BaseResponse:
+    properties:
+      result:
+        type: boolean
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/Error"
+
   UserTokenResponse:
     properties:
-      token:
-        type: string
-        description: User authorization token
-        example: "asdfjbkasfkjasdfl"
+      data:
+        type: object
+        properties:    
+          token:
+            type: string
+            description: User authorization token
+            example: "asdfjbkasfkjasdfl"
+        $ref: "#/definitions/BaseResponse"
     required:
       - token
   
+  UserPhoneResponse:
+    properties:
+      data:
+        type: object
+        properties:    
+          phone:
+            type: string
+            description: User phone number
+        $ref: "#/definitions/BaseResponse"
+    required:
+      - phone
+
   UserSigninRequest:
     properties:
       phone:
