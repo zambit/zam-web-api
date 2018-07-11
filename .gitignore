@@ -23,3 +23,4 @@ gen
 
 # go-dep
 vendor
+Gopkg.lock
