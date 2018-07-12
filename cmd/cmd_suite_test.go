@@ -13,6 +13,7 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/cmd/root"
 	"gitlab.com/ZamzamTech/wallet-api/cmd/server"
 	"gitlab.com/ZamzamTech/wallet-api/config"
+	"time"
 )
 
 func TestCmd(t *testing.T) {
@@ -73,9 +74,11 @@ var _ = Describe("testing commands", func() {
 			Expect(err).NotTo(HaveOccurred())
 
 			Expect(conf.Env).To(Equal("test"))
-			Expect(conf.DB.URI).To(Equal("postgresql://postgres:postgres@localhost:5433/postgres"))
+			Expect(conf.DB.URI).To(Equal("postgresql://postgres:postgres@localhost:5432/postgres"))
 			Expect(conf.Server.Host).To(Equal("localhost"))
 			Expect(conf.Server.Port).To(Equal(9999))
+			Expect(conf.Server.Auth.TokenName).To(Equal("Bearer"))
+			Expect(conf.Server.Auth.TokenExpire).To(Equal(time.Hour*24))
 		})
 	})
 	Context("when reading from config", func() {
