@@ -18,6 +18,7 @@ func AuthMiddlewareFactory(
 		authToken, err := GetAuthTokenFromContext(c, tokenName)
 		if err != nil {
 			abortUnauthorized(c, err.Error())
+			return
 		}
 
 		// ensure storage have this token
@@ -29,6 +30,7 @@ func AuthMiddlewareFactory(
 			default:
 				abortMiddlware(c, http.StatusInternalServerError, "token validation failed")
 			}
+			return
 		}
 
 		// attach user data to context
