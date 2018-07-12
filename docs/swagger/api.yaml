@@ -351,33 +351,31 @@ definitions:
     properties:
       result:
         type: boolean
-      errors:
-        type: array
-        items:
-          $ref: "#/definitions/Error"
 
   UserTokenResponse:
-    properties:
-      data:
-        type: object
-        properties:    
-          token:
-            type: string
-            description: User authorization token
-            example: "asdfjbkasfkjasdfl"
-        $ref: "#/definitions/BaseResponse"
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
+          data:
+            type: object
+            properties:    
+              token:
+                type: string
+                description: User authorization token
+                example: "asdfjbkasfkjasdfl"
     required:
       - token
+      - data
   
   UserPhoneResponse:
-    properties:
-      data:
-        type: object
-        properties:    
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
           phone:
             type: string
             description: User phone number
-        $ref: "#/definitions/BaseResponse"
     required:
       - phone
 
@@ -412,9 +410,12 @@ definitions:
         example: 2017-07-21T17:32:28Z
   
   UserResponse:
-    properties:
-      user:
-        $ref: "#/definitions/User"
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
+          user:
+            $ref: "#/definitions/User"
 
   UserKYCData:
     properties:
@@ -458,10 +459,13 @@ definitions:
     $ref: "#/definitions/UserKYCData"
 
   UserKYCResponse:
-    properties:
-      kyc:
-        $ref: "#/definitions/UserKYCData"
-  
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
+          kyc:
+            $ref: "#/definitions/UserKYCData"
+      
   UserKYCStatus:
     type: string
     enum:
@@ -514,21 +518,27 @@ definitions:
       - balance
 
   UserWalletResponse:
-    properties:
-      wallet:
-        $ref: "#/definitions/UserWalletData"
-  
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
+          wallet:
+            $ref: "#/definitions/UserWalletData"
+      
   UserAllWalletsResponse:
-    properties:
-      сount:
-        type: integer
-        description: Count of returned transactions
-      next:
-        type: string
-        description: Reference to the next page
-      wallets:
-        items:
-          $ref: "#/definitions/UserWalletData"
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
+          сount:
+            type: integer
+            description: Count of returned transactions
+          next:
+            type: string
+            description: Reference to the next page
+          wallets:
+            items:
+              $ref: "#/definitions/UserWalletData"
 
   WalletTransactionStatus:
     description: Describes transaction status
@@ -582,30 +592,55 @@ definitions:
         description: Amount of transferred coins
   
   WalletSendTransactionResponse:
-    properties:
-      transaction:
-        $ref: "#/definitions/WalletTransactionData"
-  
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
+          transaction:
+            $ref: "#/definitions/WalletTransactionData"
+      
   WalletTransactionResponse:
-    properties:
-      transaction:
-        $ref: "#/definitions/WalletTransactionData"
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
+          transaction:
+            $ref: "#/definitions/WalletTransactionData"
 
   WalletAllTransactionsResponse:
-    properties:
-      сount:
-        type: integer
-        description: Count of returned transactions
-      next:
-        type: string
-        description: Reference to the next page
-      transactions:
-        items:
-          $ref: "#/definitions/WalletTransactionData"
+    allOf:
+      - $ref: "#/definitions/BaseResponse"
+      - type: object
+        properties:
+          сount:
+            type: integer
+            description: Count of returned transactions
+          next:
+            type: string
+            description: Reference to the next page
+          transactions:
+            items:
+              $ref: "#/definitions/WalletTransactionData"
 
   Error:
-    description: Describes error occured to the user
-    type: object
+    description: Describes error occured while request
     properties:
       message:
         type: string
+        description: Generally describes error
+      fields:
+        description: |
+          This field is presented in case when error is cause of missed, misstyped or wrong formatted request 
+          parameter passed throught POST JSON body, query or path
+        type: array
+        items:
+          properties:
+            name:
+              type: string
+              description: Name of parameter which occurs error
+            input:
+              type: string
+              description: Describes the way in which this parameter has come
+            message:
+              type: string
+              description: Describes what wrong with this field
