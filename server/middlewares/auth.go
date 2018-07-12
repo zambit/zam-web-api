@@ -50,7 +50,7 @@ func GetAuthTokenFromContext(c *gin.Context, tokenName string) (string, error) {
 		return "", errors.New("Authorization header is empty")
 	}
 	parts := strings.Split(authHeader, " ")
-	if len(parts) != 2 || parts[0] == tokenName {
+	if len(parts) != 2 || parts[0] != tokenName {
 		return "", fmt.Errorf("auth header is wrong, expect %s token", tokenName)
 	}
 	return parts[1], nil
