@@ -81,11 +81,15 @@ func serverMain(cfg config.RootScheme) (err error) {
 
 	// provide gin engine
 	err = c.Provide(func(logger logrus.FieldLogger) *gin.Engine {
+		corsCfg := cors.DefaultConfig()
+		corsCfg.AllowMethods = append(corsCfg.AllowMethods, "DELETE")
+		corsCfg.AllowAllOrigins = true
+
 		engine := gin.New()
 		engine.Use(
 			gin.Recovery(),
 			gin.Logger(),
-			cors.Default(),
+			cors.New(corsCfg),
 		)
 		return engine
 	})
