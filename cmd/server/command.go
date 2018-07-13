@@ -84,6 +84,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 		corsCfg := cors.DefaultConfig()
 		corsCfg.AllowMethods = append(corsCfg.AllowMethods, "DELETE")
 		corsCfg.AllowAllOrigins = true
+		corsCfg.AllowHeaders = []string{"*"}
 
 		engine := gin.New()
 		engine.Use(
