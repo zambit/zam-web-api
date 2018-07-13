@@ -3,8 +3,6 @@ package server
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"github.com/gin-gonic/gin/binding"
-	"github.com/go-playground/validator"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -41,19 +39,6 @@ func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 	v.BindPFlags(command.Flags())
 
 	return command
-}
-
-// ginValidatorV9 overrides default gin validator
-type ginValidatorV9 struct {
-	validator *validator.Validate
-}
-
-func (v ginValidatorV9) ValidateStruct(val interface{}) error {
-	return v.validator.Struct(val)
-}
-
-func (v ginValidatorV9) Engine() interface{} {
-	return v.validator
 }
 
 // serverMain
@@ -102,7 +87,6 @@ func serverMain(cfg config.RootScheme) (err error) {
 			gin.Logger(),
 			cors.Default(),
 		)
-		binding.Validator = ginValidatorV9{validator: validator.New()}
 		return engine
 	})
 	if err != nil {

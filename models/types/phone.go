@@ -26,5 +26,5 @@ func NewPhone(rawPhone string) (Phone, error) {
 	}
 
 	// return formatted phone repr
-	return Phone(libphonenumber.Format(num, libphonenumber.INTERNATIONAL)), nil
+	return Phone(libphonenumber.Format(num, libphonenumber.E164)), nil
 }

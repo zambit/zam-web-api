@@ -28,34 +28,24 @@ func SignupHandlerFactory(
 		}
 
 		// create user model
-		referrerPhone := ""
-		if params.ReferrerPhone != nil {
-			referrerPhone = *params.ReferrerPhone
-		}
-		user, err := models.NewUser(params.Phone, params.Password, models.UserStatusPending, referrerPhone)
+		user, err := models.NewUser(params.Phone, params.Password, models.UserStatusPending, params.ReferrerPhone)
 		if err != nil {
 			// TODO now it's impossible to ensure phone, password and referrer phone is invalid, this must be
 			// implemented inside validator!
 			return
 		}
 
-		// check user already exists
-		_, err = models.GetUserByPhone(d, params.Phone)
-		switch {
-		case err == nil:
-			// nil means that user already exists
-			err = base.NewErrorsView("").AddField("body", "phone", "user already exists")
-			return
-		case err != models.ErrUserNotFound:
-			return
-		}
-
 		// do it in transaction
 		err = d.Tx(func(tx db.ITx) error {
-			_, err = models.CreateUser(tx, user)
+			user, err = models.CreateUser(tx, user)
 			return err
 		})
 		if err != nil {
+			if err == models.ErrUserAlreadyExists {
+				err = base.NewErrorsView("").AddField("body", "phone", err.Error())
+			} else if err == models.ErrReferrerNotFound {
+				err = base.NewErrorsView("").AddField("body", "referrer_phone", err.Error())
+			}
 			return
 		}
 
@@ -163,8 +153,7 @@ func SignoutHandlerFactory(sessStorage sessions.IStorage, tokenName string) base
 // RefreshTokenHandlerFactory returns handler which checks current token then refresh it
 func RefreshTokenHandlerFactory(
 	sessStorage sessions.IStorage,
-	tokenName string,
-	authExpiration time.Duration) base.HandlerFunc {
+	tokenName string) base.HandlerFunc {
 
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
 		authToken, err := middlewares.GetAuthTokenFromContext(c, tokenName)
@@ -172,13 +161,7 @@ func RefreshTokenHandlerFactory(
 			return
 		}
 
-		// check token valid, hasn't expired and storage available
-		userData, err := sessStorage.Get(sessions.Token(authToken))
-		if err != nil {
-			return
-		}
-
-		newToken, err := sessStorage.New(userData, authExpiration)
+		newToken, err := sessStorage.RefreshToken(sessions.Token(authToken))
 		if err != nil {
 			return
 		}

@@ -2,7 +2,7 @@ package base
 
 import (
 	"github.com/gin-gonic/gin"
-	"gopkg.in/go-playground/validator.v8"
+	"github.com/go-playground/validator"
 	"net/http"
 )
 
@@ -22,55 +22,69 @@ func WrapHandler(handler HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// perform handler
 		val, code, err := handler(c)
-		if code == 0 {
-			// fallback onto default
-			// it's safe due to errors always overrides returned code
-			if val == nil {
-				code = 204
-			} else {
-				code = 200
-			}
-		}
 
-		// collect errors
-		errors := make([]error, 0, 1+len(c.Errors))
-		if err != nil {
-			// it's expect that errors will come from validator or in form of errors views
-			// other errors are interpreted as internal errors
-			switch e := err.(type) {
-			case validator.ValidationErrors:
-				errors = append(errors, NewFieldsErrorsView(e))
-				code = http.StatusBadRequest
-			case ErrorView:
-				errors = append(errors, e)
-				code = e.Code
-			case FieldsErrorView:
-				errors = append(errors, e)
-				code = e.Code
-			default:
-				errors = append(errors, ErrorView{Message: e.Error()})
-
-				code = http.StatusInternalServerError
-			}
-		}
-		// append additional errors collected while request handling
-		for _, e := range c.Errors {
-			if e.Err == err {
-				continue
-			}
-
-			errors = append(errors, e)
-			if e.Type == gin.ErrorTypePrivate {
-				// promote status to 500 in case of private error
-				code = http.StatusInternalServerError
-			}
-		}
+		// post-process response
+		code, response := postProcessResult(c, val, code, err)
 
 		// write response object
-		c.JSON(code, BaseResponse{
-			Result: len(errors) == 0,
-			Errors: errors,
-			Data:   val,
-		})
+		c.JSON(code, response)
+	}
+}
+
+// postProcessResult coerces handler result into base api response
+func postProcessResult(c *gin.Context, val interface{}, code int, err error) (int, BaseResponse) {
+	// collect errors
+	var errors []error
+
+	// coerce returned error and try to guess response error code
+	if err != nil {
+		// it's expect that errors will come from validator or in form of errors views
+		// other errors are interpreted as internal errors
+		switch e := err.(type) {
+		case validator.ValidationErrors:
+			errors = append(errors, NewFieldsErrorsView(e))
+			code = http.StatusBadRequest
+		case ErrorView:
+			errors = append(errors, e)
+			if e.Code == 0 {
+				code = http.StatusBadRequest
+			} else {
+				code = e.Code
+			}
+		case FieldsErrorView:
+			errors = append(errors, e)
+			if e.Code == 0 {
+				code = http.StatusBadRequest
+			} else {
+				code = e.Code
+			}
+		default:
+			errors = append(errors, ErrorView{Message: e.Error()})
+
+			code = http.StatusInternalServerError
+		}
+	}
+	// append additional errors collected while request handling
+	for _, e := range c.Errors {
+		if e.Err == err {
+			continue
+		}
+
+		errors = append(errors, e)
+		if e.Type == gin.ErrorTypePrivate {
+			// promote status to 500 in case of private error
+			code = http.StatusInternalServerError
+		}
+	}
+
+	// fallback onto default it nothing else determined
+	if code == 0 {
+		code = 200
+	}
+
+	return code, BaseResponse{
+		Result: len(errors) == 0,
+		Errors: errors,
+		Data:   val,
 	}
 }

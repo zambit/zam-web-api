@@ -1,0 +1,1 @@
+create unique index users_phone_idx on users(phone);

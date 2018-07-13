@@ -83,7 +83,7 @@ func (s *memStorage) Get(token sessions.Token) (data interface{}, err error) {
 		err = sessions.ErrNotFound
 		return
 	}
-	if val.expireAt.After(time.Now()) {
+	if !val.expireAt.After(time.Now()) {
 		err = sessions.ErrExpired
 		return
 	}

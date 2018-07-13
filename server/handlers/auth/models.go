@@ -1,6 +1,6 @@
 package auth
 
-// UserSignupRequest represents user signup request
+// UserSignupRequest represents user signup request TODO add phones validators
 type UserSignupRequest struct {
 	Phone                string  `validate:"required,min=5" json:"phone"`
 	Password             string  `validate:"required,min=5" json:"password"`

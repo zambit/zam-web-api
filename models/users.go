@@ -14,14 +14,14 @@ type User struct {
 	RegisteredAt time.Time
 
 	ReferrerID    *int64
-	ReferrerPhone string
+	ReferrerPhone *string
 
 	StatusID int64
 	Status   UserStatusName
 }
 
 // NewUser creates new user from raw phone and password, also validates given fields
-func NewUser(phone, password string, status UserStatusName, referrerPhone string) (user User, err error) {
+func NewUser(phone, password string, status UserStatusName, referrerPhone *string) (user User, err error) {
 	// create password
 	encryptedPass, err := types.NewPass(password)
 	if err != nil {

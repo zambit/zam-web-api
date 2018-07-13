@@ -86,5 +86,4 @@
   version = "8.18.2"
 
 [prune]
-  go-tests = true
   unused-packages = true

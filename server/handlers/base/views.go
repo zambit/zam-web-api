@@ -2,7 +2,7 @@ package base
 
 import (
 	"fmt"
-	"gopkg.in/go-playground/validator.v8"
+	"github.com/go-playground/validator"
 	"strings"
 )
 

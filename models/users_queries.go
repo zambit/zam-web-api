@@ -7,6 +7,7 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
 	"strconv"
 	"time"
+	"github.com/lib/pq"
 )
 
 var (
@@ -18,6 +19,9 @@ var (
 
 	// ErrUserNotFound returned when no user for given params
 	ErrUserNotFound = errors.New("can't find user for given params")
+
+	// ErrUserAlreadyExists indicates that user with such phone already exists
+	ErrUserAlreadyExists = errors.New("user already exists")
 
 	// ErrReferrerNotFound returned when user creation attempt failed because of wrong referrer phone
 	ErrReferrerNotFound = errors.New("referrer not found")
@@ -44,7 +48,7 @@ func GetUserByID(tx db.ITx, id string) (user User, err error) {
 
 	// perform query
 	// TODO queries must be prepared
-	user, err = doUserQuery(tx, `SELECT * FROM users WHERE users.id = $1`, intID)
+	user, err = doUserQuery(tx, `u.id = $1`, intID)
 	return
 }
 
@@ -55,29 +59,22 @@ func GetUserByPhone(tx db.ITx, phone string) (user User, err error) {
 		return
 	}
 
-	user, err = doUserQuery(tx, `SELECT * FROM users WHERE users.phone = $1`, phoneFormatted)
+	user, err = doUserQuery(tx, `u.phone = $1`, phoneFormatted)
 	return
 }
 
 // CreateUser create user with given status returns new user representation
 func CreateUser(tx db.ITx, user User) (newUser User, err error) {
-	statusID, err := getUserStatusID(tx, user.Status)
-	if err != nil {
-		err = ErrInvalidUserID
-		return
-	}
+	newUser = user
 
-	var referrerID *int64
 	// Request referrer ID if it requested
-	if user.ReferrerPhone != "" {
-		referrer, err := GetUserByPhone(tx, user.ReferrerPhone)
+	var refPhone types.Phone
+	if user.ReferrerPhone != nil {
+		refPhone, err = types.NewPhone(*user.ReferrerPhone)
 		if err != nil {
-			if err == ErrUserNotFound {
-				err = ErrReferrerNotFound
-			}
-			return User{}, err
+			err =  ErrReferrerNotFound
+			return
 		}
-		referrerID = &referrer.ID
 	}
 
 	// populate created at field
@@ -85,16 +82,36 @@ func CreateUser(tx db.ITx, user User) (newUser User, err error) {
 		user.RegisteredAt = time.Now().UTC()
 	}
 
-	_, err = tx.Exec(
-		`INSERT INTO users (phone, password, registered_at, referrer_id, status_id) 
-        VALUES ($1, $2, $3, $4, $5) RETURNING id`,
-		user.Phone, user.Password, user.RegisteredAt, referrerID, statusID,
+	// since there is conditional statement which changes internals of sql query
+	const (
+		insertStart = `INSERT INTO users (phone, password, registered_at, referrer_id, status_id) `
+		insertAppend = `RETURNING id`
+		selectStatus = `(SELECT id FROM user_statuses WHERE name = $4)`
 	)
-	if err != nil {
-		return
+
+	var query string
+	var queryArgs []interface{}
+	// looks so wild, perform so fast
+	if user.ReferrerPhone != nil {
+		query = insertStart + ` SELECT $1, $2, $3, id, ` + selectStatus + ` FROM users WHERE phone = $5 ` + insertAppend
+		queryArgs = []interface{} {user.Phone, user.Password, user.RegisteredAt, user.Status, string(refPhone)}
+	} else {
+		query = insertStart + `VALUES ($1, $2, $3, null, ` + selectStatus + `) ` + insertAppend
+		queryArgs = []interface{} {user.Phone, user.Password, user.RegisteredAt, user.Status}
 	}
-	newUser = user
-	// newUser.ID, err = res.LastInsertId()
+
+	err = tx.QueryRow(query, queryArgs...).Scan(&newUser.ID)
+	if err != nil {
+		// zero inserted rows means that no referrer with such phone exists
+		if err == sql.ErrNoRows {
+			err = ErrReferrerNotFound
+			return
+		} else if pgErr, ok := err.(pq.PGError); ok {
+			if pgErr.Get('n') == "users_phone_idx" {
+				err = ErrUserAlreadyExists
+			}
+		}
+	}
 	return
 }
 
@@ -152,41 +169,31 @@ func getUserStatus(tx db.ITx, id int64) (status UserStatusName, err error) {
 	return
 }
 
-func doUserQuery(tx db.ITx, query string, args ...interface{}) (user User, err error) {
+func doUserQuery(tx db.ITx, filter string, args ...interface{}) (user User, err error) {
+	query := `SELECT 
+				u.id, u.phone, u.password, u.registered_at, 
+		     	u.referrer_id, u.status_id, us.name, ru.phone 
+         FROM users u 
+		 LEFT JOIN users ru ON u.referrer_id = ru.id
+		 INNER JOIN user_statuses us ON u.status_id = us.id
+		 WHERE ` + filter
 	row := tx.QueryRow(query, args...)
 
-	err = row.Scan(&user.ID, &user.Phone, &user.Password, &user.RegisteredAt, &user.ReferrerID, &user.StatusID)
+	err = row.Scan(
+		&user.ID,
+		&user.Phone,
+		&user.Password,
+		&user.RegisteredAt,
+		&user.ReferrerID,
+		&user.StatusID,
+		&user.Status,
+		&user.ReferrerPhone,
+	)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			err = ErrUserNotFound
 		}
 		return
-	}
-
-	// query referrer if it present
-	if user.ReferrerID != nil {
-		referrerPhone, rErr := GetUserPhoneByID(tx, *user.ReferrerID)
-		if rErr != nil {
-			if rErr != ErrUserNotFound {
-				err = rErr
-				return
-			} else {
-				// nothing to do here, db consistency failed!
-			}
-		}
-		user.ReferrerPhone = referrerPhone
-	}
-
-	// load user status
-	status, err := getUserStatus(tx, user.StatusID)
-	if err != nil {
-		if err == ErrInvalidUserStatus {
-			// TODO remove it later
-			status = UserStatusName("INVALID")
-			err = nil
-			return
-		}
-		user.Status = status
 	}
 
 	return

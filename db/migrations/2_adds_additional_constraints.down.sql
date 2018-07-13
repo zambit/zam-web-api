@@ -1,0 +1,1 @@
+drop index users_phone_idx;
