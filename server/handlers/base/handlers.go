@@ -4,6 +4,7 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"net/http"
+	"io"
 )
 
 // HandlerFunc specific project-wide handler function, must return nil or object which will be json-serialized,
@@ -37,7 +38,10 @@ func postProcessResult(c *gin.Context, val interface{}, code int, err error) (in
 	var errors []error
 
 	// coerce returned error and try to guess response error code
-	if err != nil {
+	if err == io.EOF {
+		code = http.StatusBadRequest
+		errors = append(errors, ErrorView{Message: "empty body"})
+	} else if err != nil {
 		// it's expect that errors will come from validator or in form of errors views
 		// other errors are interpreted as internal errors
 		switch e := err.(type) {

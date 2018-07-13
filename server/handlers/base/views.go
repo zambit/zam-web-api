@@ -44,9 +44,45 @@ type FieldsErrorView struct {
 
 // NewFieldsErrorsView
 func NewFieldsErrorsView(validationErrs validator.ValidationErrors) (view FieldsErrorView) {
-	// for name, vErr := range validationErrs {
-	//
-	// }
+	fieldErrs := make([]FieldErrorDescr, 0, len(validationErrs))
+	for _, vErr := range validationErrs {
+		if vErr == nil {
+			continue
+		}
+		fieldName, message := coerceValidationErr(vErr)
+		fieldErrs = append(
+			fieldErrs,
+			FieldErrorDescr{
+				Input:   "body",
+				Name:    fieldName,
+				Message: message,
+			},
+		)
+	}
+	view.Fields = fieldErrs
+	view.Message = "some fields contains bad formatted or invalid values"
+	return
+}
+
+// coerceValidationErr coerce different types of validation to look like backend message
+func coerceValidationErr(err validator.FieldError) (paramName, message string) {
+	paramName = strings.ToLower(err.Field())
+
+	switch err.Tag() {
+	case "required":
+		message = "field is required"
+	case "min":
+		message = fmt.Sprintf("field value must be at least %s items long", err.Param())
+	case "eqfield":
+		// TODO improve fields naming especially with cross-field validations
+		message = fmt.Sprintf("this field must be equal to %s", strings.ToLower(err.Param()))
+	default:
+		if e, ok := err.(error); ok {
+			message = e.Error()
+		} else {
+			message = "unexpected error"
+		}
+	}
 	return
 }
 

@@ -24,6 +24,7 @@ import (
 	"net/http"
 	"time"
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
+	"io"
 )
 
 const (
@@ -118,6 +119,15 @@ var _ = Describe("Given the auth api", func() {
 					mock.Anything,
 					notifications.Urgent,
 				).Return(nil)
+			})
+
+			ItD("should return EOF", func(handler base.HandlerFunc) {
+				r, err := http.NewRequest("", "", bytes.NewReader([]byte{}))
+				Expect(err).NotTo(HaveOccurred())
+
+				_, _, err = handler(&gin.Context{Request: r})
+				Expect(err).To(HaveOccurred())
+				Expect(err).To(Equal(io.EOF))
 			})
 
 			ItD("should be valid request", func(handler base.HandlerFunc, d *db.Db, sessStore *sessmocks.IStorage, sender *notifmocks.ISender) {
