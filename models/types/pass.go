@@ -20,7 +20,9 @@ func NewPass(originalPassword string) (Password, error) {
 // Compare compares to raw password (not-encoded)
 func (pswd Password) Compare(rawPassword string) (bool, error) {
 	err := bcrypt.CompareHashAndPassword(pswd, []byte(rawPassword))
-	if err != nil && err != bcrypt.ErrMismatchedHashAndPassword {
+	if err == bcrypt.ErrMismatchedHashAndPassword {
+		return false, nil
+	} else if err != nil {
 		return false, err
 	}
 	return true, nil
