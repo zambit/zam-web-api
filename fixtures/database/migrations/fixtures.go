@@ -8,10 +8,19 @@ import (
 	"github.com/golang-migrate/migrate"
 	_ "github.com/golang-migrate/migrate/source/file"
 	_ "github.com/golang-migrate/migrate/database/postgres"
+	"runtime"
+	"path"
 )
 
 func newMigrate(uri string) (*migrate.Migrate, error) {
-	return migrate.New("file://db/migrations", uri)
+	// determine migration location relative to this file
+	_, filename, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("No caller information")
+	}
+	projectRoot := path.Clean(path.Join(path.Dir(filename), "..", "..", ".."))
+
+	return migrate.New("file://" + path.Clean(path.Join(projectRoot, "db/migrations")), uri)
 }
 
 func Init()  {
