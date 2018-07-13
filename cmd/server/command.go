@@ -18,6 +18,7 @@ import (
 	"go.uber.org/dig"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
+	"github.com/gin-contrib/cors"
 )
 
 // Create and initialize server command for given viper instance
@@ -99,6 +100,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 		engine.Use(
 			gin.Recovery(),
 			gin.Logger(),
+			cors.Default(),
 		)
 		binding.Validator = ginValidatorV9{validator: validator.New()}
 		return engine
