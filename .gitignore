@@ -24,3 +24,6 @@ gen
 # go-dep
 vendor
 Gopkg.lock
+
+# go coverage
+*.coverprofile

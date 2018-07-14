@@ -12,10 +12,10 @@ type RootScheme struct {
 	// Env describes current environment
 	Env string
 
-	// DB connection
+	// DB connection description
 	DB db.Scheme
 
-	// Server
+	// Server holds different web-server related configuration values
 	Server server.Scheme
 }
 
