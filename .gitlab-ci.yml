@@ -1,0 +1,94 @@
+stages:
+  - build
+  - test
+  - deploy
+
+build:
+  stage: build
+  variables:
+      # GO_PROJECT_PATH: git.zam.io/wallet-backend/web-api
+      GO_PROJECT_PATH: gitlab.com/ZamzamTech/wallet-api
+      GOROOT: /usr/lib/go-1.10/
+  script:
+    # prepare go-env
+    - mkdir build
+    - export BUILD_OUT_DIR=`pwd`/build
+
+    - export GOPATH=`pwd`
+    - export PATH=$PATH:/usr/lib/go-1.10/bin
+  
+    # copy all files into go-style path
+    - mkdir -p .src/$GO_PROJECT_PATH
+    - cp -r * .src/$GO_PROJECT_PATH
+    - mv .src src
+
+    - cd src/$GO_PROJECT_PATH
+
+    # install dep tool and ensure dependencies
+    - go get github.com/golang/dep
+    - go build -o dep github.com/golang/dep/cmd/dep
+    - ./dep ensure
+
+    # install ginkgo and build tests
+    - go get github.com/onsi/ginkgo
+    - go build -o ginkgo github.com/onsi/ginkgo/ginkgo
+    - ./ginkgo build -r .
+    - mkdir $BUILD_OUT_DIR/tests
+    - cp `find -name *.test` $BUILD_OUT_DIR/tests
+
+    # build binary into artifact
+    - go build -o $BUILD_OUT_DIR/web-api cmd/main/main.go
+
+    # copy migrations
+    - mkdir $BUILD_OUT_DIR/migrations
+    - cp db/migrations/* $BUILD_OUT_DIR/migrations
+  tags:
+    - build_srv
+  artifacts:
+    paths:
+      - build
+
+pages:
+  stage: build
+  script:
+    - ls docs
+    - ls docs/swagger
+    - npm install redoc-cli
+    - ./node_modules/redoc-cli/index.js bundle -o index.html docs/swagger/api.yaml
+    - mkdir public
+    - mv index.html public
+  tags:
+   - build_srv
+  artifacts:
+    paths:
+      - public
+  only:
+    - master
+  cache:
+    key: ${CI_COMMIT_REF_SLUG}
+    paths:
+    - node_modules/
+
+test:
+  stage: test
+  script:
+    - echo test
+    - echo `pwd`
+    - export WA_DB_URI=$TESTING_DB_URI
+    - export WA_MIGRATIONS_DIR=build/migrations
+    - bash -c 'for TEST in $(find -name *.test); do ./$TEST; if [ $? -ne 0 ]; then break; fi; done'
+  tags:
+    - testing_srv
+  dependencies:
+    - build
+
+deploy:
+  stage: deploy
+  script:
+    - rm -f $STAGING_DEPLOY_DIR/web-api
+    - cp build/web-api $STAGING_DEPLOY_DIR
+    - cd $STAGING_DEPLOY_DIR
+    - "echo '{\"env\": \"staging\", \"db\": {\"uri\": \"'$STAGING_DB_URI'\"}}' > conf.json"
+    - killall -1 web-api
+  tags:
+    - testing_srv
