@@ -9,6 +9,7 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/config"
 	serverconf "gitlab.com/ZamzamTech/wallet-api/config/server"
 	"gitlab.com/ZamzamTech/wallet-api/db"
+	_ "gitlab.com/ZamzamTech/wallet-api/server/handlers"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/static"
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
