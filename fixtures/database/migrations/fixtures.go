@@ -10,17 +10,25 @@ import (
 	_ "github.com/golang-migrate/migrate/database/postgres"
 	"runtime"
 	"path"
+	"os"
 )
 
 func newMigrate(uri string) (*migrate.Migrate, error) {
-	// determine migration location relative to this file
-	_, filename, _, ok := runtime.Caller(0)
-	if !ok {
-		panic("No caller information")
-	}
-	projectRoot := path.Clean(path.Join(path.Dir(filename), "..", "..", ".."))
+	var migrationsDir string
 
-	return migrate.New("file://" + path.Clean(path.Join(projectRoot, "db/migrations")), uri)
+	if envVal, ok := os.LookupEnv("WA_MIGRATIONS_DIR"); ok {
+		migrationsDir = envVal
+	} else {
+		// determine migration location relative to this file
+		_, filename, _, ok := runtime.Caller(0)
+		if !ok {
+			panic("No caller information")
+		}
+		projectRoot := path.Clean(path.Join(path.Dir(filename), "..", "..", ".."))
+		migrationsDir = path.Clean(path.Join(projectRoot, "db/migrations"))
+	}
+
+	return migrate.New("file://" + migrationsDir, uri)
 }
 
 func Init()  {

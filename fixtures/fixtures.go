@@ -8,6 +8,7 @@ import (
 	dbconfig "gitlab.com/ZamzamTech/wallet-api/config/db"
 	servconf "gitlab.com/ZamzamTech/wallet-api/config/server"
 	"time"
+	"os"
 )
 
 // Container global and used by test suites to fetch dependencies, available only inside test scope
@@ -87,6 +88,11 @@ func Init() {
 				TokenExpire time.Duration
 			}{TokenName: "Test", TokenExpire: time.Second},
 		},
+	}
+
+	// lookup for env variable
+	if dbUri, ok := os.LookupEnv("WA_DB_URI"); ok {
+		conf.DB.URI = dbUri
 	}
 
 	// provide config values
