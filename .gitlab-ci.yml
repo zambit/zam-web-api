@@ -72,8 +72,11 @@ pages:
 test:
   stage: test
   script:
+    # export variables used by test to lookup migrations and db
     - export WA_DB_URI=$TESTING_DB_URI
     - export WA_MIGRATIONS_DIR=build/migrations
+
+    # run them sequentially break if any of them failed
     - bash -c 'for TEST in $(find -name *.test); do ./$TEST; if [ $? -ne 0 ]; then break; fi; done'
   tags:
     - testing_srv
@@ -83,10 +86,15 @@ test:
 deploy_on_staging:
   stage: deploy
   script:
+    # remove outdated binary and copy new one
     - rm -f $STAGING_DEPLOY_DIR/web-api
     - cp build/web-api $STAGING_DEPLOY_DIR
+
+    # generate config
     - cd $STAGING_DEPLOY_DIR
     - "echo '{\"env\": \"staging\", \"db\": {\"uri\": \"'$STAGING_DB_URI'\"}}' > conf.json"
+
+    # trigger systemd to restart service by softly killing old instance
     - killall -1 web-api
   only:
     - master
