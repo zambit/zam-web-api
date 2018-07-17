@@ -16,29 +16,137 @@ produces:
   - application/json
 
 paths:
-  /auth/signup:
+  /auth/signup/start:
     post:
-      summary: Create new user and get auth token
+      summary: Start user account creation by sending verification code via SMS.
+      description: This method is idempotent, so sequential call will result in re-dispatching of an SMS with verification code, but there is call limits per phone number.
       parameters:
         - in: body
           name: body
           required: true
-          description: Create user request
+          description: User account creation request
           schema:
-            $ref: "#/definitions/UserSingupRequest"
+            type: object
+            properties:
+              phone:
+                type: string
+                format: phone_number
+                description: User phone
+              referrer_phone:
+                type: string
+                format: phone_number
+                description: Phone of an existing user are required, self phone are not allowed.
+            required:
+              - phone
       responses:
-        201:
-          description: User auth token
+        200:
+          description: Ok, SMS with confirmation code has been sent
           schema:
-            $ref: '#/definitions/UserTokenResponse'
-        default:
-          description: In case of any error
+            $ref: "#/definitions/BaseResponse"
+        400:
+          description: |
+            Possible error messages:
+              * Wrong parametres
+              * User already exists
+              * Referrer not found
+              * Not so fast! Next code dispatch will be awaliable in %d seconds...
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: |
+            Internal server error
+  
+  /auth/signup/verify:
+    post:
+      summary: Verifies user account by passing SMS Code which has been sent previously
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: User account verification request
+          schema:
+            type: object
+            properties:
+              verification_code:
+                type: string
+                description: Verification code obtained by SMS
+            required:
+              - verification_code
+      responses:
+        200:
+          description: Ok, returned SignUp Token must be used for further account creation
+          schema:
+            allOf:
+              - $ref: "#/definitions/BaseResponse"
+              - type: object
+                properties:
+                  signup_token:
+                    type: string
+                    description: SignUp token required by further "finish" request
+        400:
+          description: |
+            Possible error messages:
+              * Wrong parametres
+              * Account verification on finish stage
+                - Hint: issue "finish" request in case of obtained SignUp Token, otherwise start this flow again
+              * Expired code
+                - Hint: issue "start" request again
+              * Wrong code
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: |
+            Internal server error
+          schema:
+            $ref: "#/definitions/Error"
+  
+  /auth/signup/finish:
+    post:
+      summary: Finish account creation by setting user password, this request requires SignUp Token
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: User account craetion request
+          schema:
+            type: object
+            properties:
+              signup_token:
+                type: string
+                description: SignUp Token received in "verify" request
+              password:
+                type: string
+                format: password
+              password_confirmation:
+                type: string
+                format: password
+            required:
+              - signup_token
+              - password
+              - password_confirmation
+      responses:
+        200:
+          description: Ok, SMS with confirmation code has been sent
+          schema:
+            $ref: "#/definitions/BaseResponse"
+        400:
+          description: |
+            Possible error messages:
+              * Wrong parametres
+              * Wrong SignUp token
+              * Expired SignUp token
+                - Hint: issue "start" request again
+              * User already exists
+                - Hint: means that all stages already passed so user can login using previously specified auth perameters
+        500:
+          description: |
+            Internal server error
           schema:
             $ref: "#/definitions/Error"
 
   /auth/signin:
     post:
-      summary: Authorize user and get auth token
+      summary: Authorize user and get auth token, works only for full-verified user accounts
       parameters:
         - in: body
           name: body
