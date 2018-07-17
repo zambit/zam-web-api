@@ -72,8 +72,6 @@ pages:
 test:
   stage: test
   script:
-    - echo test
-    - echo `pwd`
     - export WA_DB_URI=$TESTING_DB_URI
     - export WA_MIGRATIONS_DIR=build/migrations
     - bash -c 'for TEST in $(find -name *.test); do ./$TEST; if [ $? -ne 0 ]; then break; fi; done'
@@ -82,7 +80,7 @@ test:
   dependencies:
     - build
 
-deploy:
+deploy_on_staging:
   stage: deploy
   script:
     - rm -f $STAGING_DEPLOY_DIR/web-api
@@ -90,5 +88,7 @@ deploy:
     - cd $STAGING_DEPLOY_DIR
     - "echo '{\"env\": \"staging\", \"db\": {\"uri\": \"'$STAGING_DB_URI'\"}}' > conf.json"
     - killall -1 web-api
+  only:
+    - master
   tags:
     - testing_srv
