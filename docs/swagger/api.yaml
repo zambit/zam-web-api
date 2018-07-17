@@ -47,8 +47,39 @@ paths:
           description: |
             Possible error messages:
               * Wrong parametres
+                - Description: parametres validation errors
               * User already exists
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "phone",
+                        "input": "body",
+                        "message": "user already exists"
+                      }
+                    }
+                  ]
+                }
+                ```
               * Referrer not found
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "referrer_phone",
+                        "input": "body",
+                        "message": "referrer not found"
+                      }
+                    }
+                  ]
+                }
+                ```
               * Not so fast! Next code dispatch will be awaliable in %d seconds...
           schema:
             $ref: "#/definitions/Error"
@@ -67,6 +98,10 @@ paths:
           schema:
             type: object
             properties:
+              phone:
+                type: string
+                format: phone_number
+                description: User phone
               verification_code:
                 type: string
                 description: Verification code obtained by SMS
@@ -80,18 +115,53 @@ paths:
               - $ref: "#/definitions/BaseResponse"
               - type: object
                 properties:
-                  signup_token:
-                    type: string
-                    description: SignUp token required by further "finish" request
+                  data:
+                    type: object
+                    properties:
+                      signup_token:
+                        type: string
+                        description: SignUp token required by further "finish" request
         400:
           description: |
             Possible error messages:
               * Wrong parametres
+                - Description: parametres validation errors
               * Account verification on finish stage
-                - Hint: issue "finish" request in case of obtained SignUp Token, otherwise start this flow again
-              * Expired code
+                - Hint: issue "start" request in case of lost SignUp Token, otherwise send "finish" request
+              * Code is expired
                 - Hint: issue "start" request again
-              * Wrong code
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "code",
+                        "input": "body",
+                        "message": "code is expired"
+                      }
+                    }
+                  ]
+                }
+                ```
+              * Code is wrong
+                - Description: returned when either phone or code are invalid
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "code",
+                        "input": "body",
+                        "message": "code is wrong"
+                      }
+                    }
+                  ]
+                }
+                ```
           schema:
             $ref: "#/definitions/Error"
         500:
@@ -111,6 +181,10 @@ paths:
           schema:
             type: object
             properties:
+              phone:
+                type: string
+                format: phone_number
+                description: User phone
               signup_token:
                 type: string
                 description: SignUp Token received in "verify" request
@@ -133,11 +207,57 @@ paths:
           description: |
             Possible error messages:
               * Wrong parametres
-              * Wrong SignUp token
-              * Expired SignUp token
+                - Description: parametres validation errors
+              * SignUp Token is wrong
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "signup_token",
+                        "input": "body",
+                        "message": "signup token is wrong"
+                      }
+                    }
+                  ]
+                }
+                ```
+              * SignUp Token is expired
                 - Hint: issue "start" request again
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "signup_token",
+                        "input": "body",
+                        "message": "signup token is expired"
+                      }
+                    }
+                  ]
+                }
+                ```
               * User already exists
                 - Hint: means that all stages already passed so user can login using previously specified auth perameters
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "phone",
+                        "input": "body",
+                        "message": "user already exists"
+                      }
+                    }
+                  ]
+                }
+                ```
         500:
           description: |
             Internal server error
