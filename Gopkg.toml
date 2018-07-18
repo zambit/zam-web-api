@@ -81,5 +81,10 @@
   branch = "master"
   name = "golang.org/x/crypto"
 
+# fix "panic: version queue is empty, should not happen"
+[[override]]
+  name = "gopkg.in/fsnotify.v1"
+  source = "https://github.com/fsnotify/fsnotify.git"
+
 [prune]
   unused-packages = true

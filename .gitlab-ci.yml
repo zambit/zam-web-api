@@ -15,8 +15,9 @@ build:
     - mkdir build
     - export BUILD_OUT_DIR=`pwd`/build
 
+    - mkdir -p bin
     - export GOPATH=`pwd`
-    - export PATH=$PATH:/usr/lib/go-1.10/bin
+    - export PATH=$PATH:/usr/lib/go-1.10/bin:$GOPATH/bin
   
     # copy all files into go-style path
     - mkdir -p .src/$GO_PROJECT_PATH
@@ -26,9 +27,8 @@ build:
     - cd src/$GO_PROJECT_PATH
 
     # install dep tool and ensure dependencies
-    - go get github.com/golang/dep
-    - go build -o dep github.com/golang/dep/cmd/dep
-    - ./dep ensure
+    - INSTALL_DIRECTORY=`pwd` curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
+    - dep ensure
 
     # install ginkgo and build tests
     - go get github.com/onsi/ginkgo
@@ -114,6 +114,7 @@ deploy_on_staging:
     # remove outdated binary and copy new one
     - rm -f $STAGING_DEPLOY_DIR/web-api
     - cp build/web-api $STAGING_DEPLOY_DIR
+    - cp -r build/migrations $STAGING_DEPLOY_DIR
 
     # generate config
     - cd $STAGING_DEPLOY_DIR
