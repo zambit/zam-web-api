@@ -9,6 +9,7 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/fixtures/database"
 	"gitlab.com/ZamzamTech/wallet-api/fixtures/database/migrations"
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
+	"fmt"
 )
 
 const (
@@ -17,6 +18,7 @@ const (
 	validPhone3  = "+79000000003"
 	validPhone4  = "+79000000004"
 	validPhone5  = "+79000000005"
+	validPhone6  = "+79000000006"
 	invalidPhone = "+790000000000"
 	pass         = "1234"
 )
@@ -27,13 +29,20 @@ var _ = Describe("user related queries", func() {
 	migrations.Init()
 
 	phoneToIDMap := make(map[string]int64)
-	preInsertPhones := []interface{}{validPhone2, validPhone3, validPhone4}
+	preInsertPhones := []interface{}{validPhone2, validPhone3, validPhone4, validPhone6}
 	BeforeEachCInvoke(func(d *db.Db) {
+		activeStatusID, err := getUserStatusID(d, UserStatusActive)
+		pendingStatusID, err := getUserStatusID(d, UserStatusPending)
+		Expect(err).NotTo(HaveOccurred())
+
 		// prepend table before test to be sure returned user id is actual
 		rows, err := d.Query(
-			`INSERT INTO users (phone, status_id, registered_at) VALUES 
-				($1, 1, now()), ($2, 1, now()), ($3, 1, now()) 
-			RETURNING id`,
+			fmt.Sprintf(
+				`INSERT INTO users (phone, status_id, registered_at) VALUES 
+					($1, %d, now()), ($2, %d, now()), ($3, %d, now()), ($4, %d, now()) 
+				RETURNING id`,
+				activeStatusID, activeStatusID, activeStatusID, pendingStatusID,
+			),
 			preInsertPhones...,
 		)
 		Expect(err).NotTo(HaveOccurred())
@@ -50,6 +59,13 @@ var _ = Describe("user related queries", func() {
 	Describe("when querying new user", func() {
 		ItD("should return valid user", func(d *db.Db) {
 			user, err := GetUserByPhone(d, validPhone2)
+			Expect(err).NotTo(HaveOccurred())
+			Expect(user.ID).To(Equal(phoneToIDMap[validPhone2]))
+			Expect(user.Phone).To(Equal(types.Phone(validPhone2)))
+		})
+
+		ItD("should return valid user and lock for update", func(d *db.Db) {
+			user, err := GetUserByPhone(d, validPhone2, true)
 			Expect(err).NotTo(HaveOccurred())
 			Expect(user.ID).To(Equal(phoneToIDMap[validPhone2]))
 			Expect(user.Phone).To(Equal(types.Phone(validPhone2)))
@@ -104,6 +120,12 @@ var _ = Describe("user related queries", func() {
 						Description: "should be failed because no such referrer",
 						Parameters: []interface{} {
 							validPhone5, ErrReferrerNotFound,
+						},
+					},
+					{
+						Description: "should be failed because referrer not in active state",
+						Parameters: []interface{} {
+							validPhone6, ErrReferrerNotFound,
 						},
 					},
 					{

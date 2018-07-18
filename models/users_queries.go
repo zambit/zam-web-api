@@ -6,7 +6,6 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/db"
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
 	"strconv"
-	"time"
 	"github.com/lib/pq"
 )
 
@@ -18,7 +17,7 @@ var (
 	ErrInvalidUserStatus = errors.New("invalid user status")
 
 	// ErrUserNotFound returned when no user for given params
-	ErrUserNotFound = errors.New("can't find user for given params")
+	ErrUserNotFound = errors.New("user not found")
 
 	// ErrUserAlreadyExists indicates that user with such phone already exists
 	ErrUserAlreadyExists = errors.New("user already exists")
@@ -48,18 +47,29 @@ func GetUserByID(tx db.ITx, id string) (user User, err error) {
 
 	// perform query
 	// TODO queries must be prepared
-	user, err = doUserQuery(tx, `u.id = $1`, intID)
+	user, err = doUserQuery(tx, `u.id = $1`, false, intID)
 	return
 }
 
-// GetUserByPhone get user by raw phone
-func GetUserByPhone(tx db.ITx, phone string) (user User, err error) {
+// GetUserByPhone get user by raw phone, if forUpdate specified appropriate sql statement will be generated
+func GetUserByPhone(tx db.ITx, phone string, forUpdate ...bool) (user User, err error) {
 	phoneFormatted, err := types.NewPhone(phone)
 	if err != nil {
 		return
 	}
 
-	user, err = doUserQuery(tx, `u.phone = $1`, phoneFormatted)
+	forUpdateCoerced := len(forUpdate) > 0 && forUpdate[0]
+	user, err = doUserQuery(tx, `u.phone = $1`, forUpdateCoerced, phoneFormatted)
+	return
+}
+
+// GetUserByPhone get user by raw phone and status name
+func GetUserByPhoneAndStatus(tx db.ITx, phone string, status UserStatusName) (user User, err error) {
+	phoneFormatted, err := types.NewPhone(phone)
+	if err != nil {
+		return
+	}
+	user, err = doUserQuery(tx, `u.phone = $1 AND us.name = $2`, false, phoneFormatted, status)
 	return
 }
 
@@ -77,10 +87,8 @@ func CreateUser(tx db.ITx, user User) (newUser User, err error) {
 		}
 	}
 
-	// populate created at field
-	if user.RegisteredAt.IsZero() {
-		user.RegisteredAt = time.Now().UTC()
-	}
+	// ensure status related fields are populated
+	user.SetStatus(user.Status)
 
 	// since there is conditional statement which changes internals of sql query
 	const (
@@ -93,8 +101,16 @@ func CreateUser(tx db.ITx, user User) (newUser User, err error) {
 	var queryArgs []interface{}
 	// looks so wild, perform so fast
 	if user.ReferrerPhone != nil {
-		query = insertStart + ` SELECT $1, $2, $3, id, ` + selectStatus + ` FROM users WHERE phone = $5 ` + insertAppend
-		queryArgs = []interface{} {user.Phone, user.Password, user.RegisteredAt, user.Status, string(refPhone)}
+		query = insertStart + ` SELECT $1, $2, $3, u.id, ` + selectStatus + ` 
+			FROM 
+				users u
+			INNER JOIN user_statuses us ON u.status_id = us.id
+			WHERE 
+				u.phone = $5 and 
+				us.name = $6` + insertAppend
+		queryArgs = []interface{} {
+			user.Phone, user.Password, user.RegisteredAt, user.Status, string(refPhone), UserStatusActive,
+		}
 	} else {
 		query = insertStart + `VALUES ($1, $2, $3, null, ` + selectStatus + `) ` + insertAppend
 		queryArgs = []interface{} {user.Phone, user.Password, user.RegisteredAt, user.Status}
@@ -115,28 +131,71 @@ func CreateUser(tx db.ITx, user User) (newUser User, err error) {
 	return
 }
 
-// ChangeUserStatus changes user status, you must pass user with valid ID field
-func ChangeUserStatus(tx db.ITx, user User, status UserStatusName) (newUser User, err error) {
+// UpdateUser updates whole user row
+func UpdateUser(tx db.ITx, user User) (err error) {
+	user.SetStatus(user.Status)
+	statusID, err := getUserStatusID(tx, user.Status)
+	if err != nil {
+		err = ErrInvalidUserStatus
+		return
+	}
+
+	res, err := tx.Exec(
+		`UPDATE users SET
+            phone = $1,
+			password = $2,
+            registered_at = $3,
+			created_at = $4,
+			updated_at = $5,
+			status_id = $6
+        WHERE id = $7`,
+        user.Phone, user.Password, user.RegisteredAt, user.CreatedAt, user.UpdatedAt, statusID, user.ID,
+	)
+	if err != nil {
+		return
+	}
+	rows, err := res.RowsAffected()
+	switch {
+	case err != nil:
+		return
+	case rows == 0:
+		err = ErrUserNotFound
+		return
+	}
+	return nil
+}
+
+// UpdateUserStatus changes user status, you must pass user with valid ID field
+func UpdateUserStatus(tx db.ITx, user User, status UserStatusName) (newUser User, err error) {
 	statusID, err := getUserStatusID(tx, status)
 	if err != nil {
 		err = ErrInvalidUserStatus
 		return
 	}
 
-	res, err := tx.Exec(`UPDATE users SET status_id = $1 WHERE id = $2`, statusID, user.ID)
+	// update status and related fields
+	user.SetStatus(status)
+
+	res, err := tx.Exec(
+		`UPDATE users SET 
+			status_id = $1,
+			registered_at = $2,
+            updated_at = $3
+		WHERE id = $4`,
+		statusID,
+		user.RegisteredAt,
+		user.UpdatedAt,
+		user.ID,
+	)
 	if err != nil {
 		return
 	}
 	rows, err := res.RowsAffected()
-	if err != nil || rows == 0 {
-		// returns actual error first
-		if err != nil {
-			return
-		}
-		if rows == 0 {
-			err = ErrUserNotFound
-		}
-
+	switch {
+	case err != nil:
+		return
+	case rows == 0:
+		err = ErrUserNotFound
 		return
 	}
 
@@ -152,7 +211,7 @@ func getUserStatusID(tx db.ITx, status UserStatusName) (id int64, err error) {
 	err = res.Scan(&id)
 	if err != nil {
 		if err == sql.ErrNoRows {
-			err = ErrInvalidUserID
+			err = ErrInvalidUserStatus
 		}
 	}
 	return
@@ -169,14 +228,19 @@ func getUserStatus(tx db.ITx, id int64) (status UserStatusName, err error) {
 	return
 }
 
-func doUserQuery(tx db.ITx, filter string, args ...interface{}) (user User, err error) {
-	query := `SELECT 
+func doUserQuery(tx db.ITx, filter string, forUpdate bool, args ...interface{}) (user User, err error) {
+	var forUpdatePart string
+	if forUpdate {
+		forUpdatePart = "FOR UPDATE OF u"
+	}
+
+	query := `SELECT
 				u.id, u.phone, u.password, u.registered_at, 
 		     	u.referrer_id, u.status_id, us.name, ru.phone 
          FROM users u 
 		 LEFT JOIN users ru ON u.referrer_id = ru.id
 		 INNER JOIN user_statuses us ON u.status_id = us.id
-		 WHERE ` + filter
+		 WHERE ` + filter + ` ` + forUpdatePart
 	row := tx.QueryRow(query, args...)
 
 	err = row.Scan(

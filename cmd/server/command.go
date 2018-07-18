@@ -14,10 +14,13 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/static"
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions/mem"
+	memnosql "gitlab.com/ZamzamTech/wallet-api/services/nosql/mem"
 	"go.uber.org/dig"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
 	"github.com/gin-contrib/cors"
+	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth/dependencies"
+	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
 )
 
 // Create and initialize server command for given viper instance
@@ -42,6 +45,17 @@ func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 	return command
 }
 
+//
+type staticGenerator struct {}
+
+func (*staticGenerator) RandomCode() string {
+	return "4444"
+}
+
+func (*staticGenerator) RandomToken() string {
+	return "signup_token"
+}
+
 // serverMain
 func serverMain(cfg config.RootScheme) (err error) {
 	// create DI container and populate it with providers
@@ -63,6 +77,27 @@ func serverMain(cfg config.RootScheme) (err error) {
 
 	// provide sessions storage
 	err = c.Provide(mem.New)
+	if err != nil {
+		return
+	}
+
+	// provide nosql storage
+	err = c.Provide(memnosql.New)
+	if err != nil {
+		return
+	}
+
+	// provide static generator
+	err = c.Provide(func(conf serverconf.Scheme) notifications.IGenerator {
+		switch conf.GeneratorType {
+		case "mem":
+			fallthrough
+		case "":
+			return &staticGenerator{}
+		default:
+			panic(fmt.Sprintf("unsuported generator type specified %s", conf.GeneratorType))
+		}
+	})
 	if err != nil {
 		return
 	}
@@ -113,7 +148,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 	}, dig.Name("auth"))
 
 	// Run server!
-	err = c.Invoke(func(engine *gin.Engine, dependencies auth.Dependencies) error {
+	err = c.Invoke(func(engine *gin.Engine, dependencies dependencies.Dependencies) error {
 		auth.Register(dependencies)
 		static.Register(engine)
 		return engine.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))

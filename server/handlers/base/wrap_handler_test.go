@@ -23,9 +23,11 @@ var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorVi
 		Param2 string `validate:"min=5" json:"param2"`
 		Param3 string `json:"param3"`
 		Param4 string `validate:"eqfield=Param3" json:"param4"`
+		ComplexName string `validate:"required" json:"complexName"`
 	}
 
 	v := validator.New()
+	initValidator(v)
 	Context("when all params are invalid", func() {
 		It("should coerce appropriate", func() {
 			err := v.Struct(&exampleParam{
@@ -33,6 +35,7 @@ var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorVi
 				Param2: "1234",
 				Param3: "example",
 				Param4: "miss_example",
+				ComplexName: "",
 			})
 			Expect(err).To(HaveOccurred())
 
@@ -40,7 +43,7 @@ var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorVi
 			Expect(NewFieldsErrorsView(vErr)).To(Equal(
 				FieldsErrorView{
 					ErrorView: ErrorView{
-						Message: "some fields contains bad formatted or invalid values",
+						Message: "wrong parameters",
 					},
 					Fields: []FieldErrorDescr{
 						{
@@ -57,6 +60,11 @@ var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorVi
 							Input: "body",
 							Name: "param4",
 							Message: "this field must be equal to param3",
+						},
+						{
+							Input: "body",
+							Name: "complexName",
+							Message: "field is required",
 						},
 					},
 				},

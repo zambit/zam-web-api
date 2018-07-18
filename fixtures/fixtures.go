@@ -83,10 +83,7 @@ func Init() {
 			URI: "postgresql://test:test@localhost/test?sslmode=disable",
 		},
 		Server: servconf.Scheme{
-			Auth: struct {
-				TokenName   string
-				TokenExpire time.Duration
-			}{TokenName: "Test", TokenExpire: time.Second},
+			Auth: servconf.AuthScheme{TokenName: "Test", TokenExpire: time.Second},
 		},
 	}
 

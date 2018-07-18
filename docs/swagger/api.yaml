@@ -81,6 +81,7 @@ paths:
                 }
                 ```
               * Not so fast! Next code dispatch will be awaliable in %d seconds...
+              * Action not allowed
           schema:
             $ref: "#/definitions/Error"
         500:
@@ -126,25 +127,11 @@ paths:
             Possible error messages:
               * Wrong parametres
                 - Description: parametres validation errors
-              * Account verification on finish stage
-                - Hint: issue "start" request in case of lost SignUp Token, otherwise send "finish" request
-              * Code is expired
-                - Hint: issue "start" request again
-                ```json
-                {
-                  "result": false,
-                  "errors": [
-                    {
-                      "message": "wrong parametres",
-                      "fields": {
-                        "name": "code",
-                        "input": "body",
-                        "message": "code is expired"
-                      }
-                    }
-                  ]
-                }
-                ```
+              * Such action not allowed
+                - Description: account already created or on another stage
+                - Hint: issue "start" again if you don't know what to do
+              * User not found
+                - Description: no user found with given phone
               * Code is wrong
                 - Description: returned when either phone or code are invalid
                 ```json
@@ -200,15 +187,21 @@ paths:
               - password_confirmation
       responses:
         200:
-          description: Ok, SMS with confirmation code has been sent
+          description: Ok, refistration completed, user allowed to signin, also returns auth token
           schema:
-            $ref: "#/definitions/BaseResponse"
+            $ref: "#/definitions/UserTokenResponse"
         400:
           description: |
             Possible error messages:
               * Wrong parametres
                 - Description: parametres validation errors
+              * Such action not allowed
+                - Description: account already created or on another stage
+                - Hint: issue "start" again if you don't know what to do
+              * User not found
+                - Description: no user found with given phone
               * SignUp Token is wrong
+                - Hint: in case of lost SignUp Token, issue start again
                 ```json
                 {
                   "result": false,
@@ -219,23 +212,6 @@ paths:
                         "name": "signup_token",
                         "input": "body",
                         "message": "signup token is wrong"
-                      }
-                    }
-                  ]
-                }
-                ```
-              * SignUp Token is expired
-                - Hint: issue "start" request again
-                ```json
-                {
-                  "result": false,
-                  "errors": [
-                    {
-                      "message": "wrong parametres",
-                      "fields": {
-                        "name": "signup_token",
-                        "input": "body",
-                        "message": "signup token is expired"
                       }
                     }
                   ]

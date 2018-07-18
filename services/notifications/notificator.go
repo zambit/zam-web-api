@@ -16,10 +16,15 @@ func (level ImportanceLevel) String() string {
 
 const (
 	Urgent ImportanceLevel = iota
+	Confirmation
 	Ordinal
 )
 
 const (
+	// ActionRegistrationConfirmationRequested requires service to send confirmation
+	// This actions requires "phone" and "code" to be specified in data map
+	ActionRegistrationConfirmationRequested = "action_registration_confirmation_requested"
+
 	// ActionRegistrationCompleted notify user about successful registration and request confirmation
 	ActionRegistrationCompleted = "action_registration_completed"
 )

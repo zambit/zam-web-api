@@ -5,80 +5,12 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/db"
 	"gitlab.com/ZamzamTech/wallet-api/models"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	"time"
 	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
 	"github.com/pkg/errors"
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
 )
-
-// SignupHandlerFactory returns linked with given values /auth/signup handler
-func SignupHandlerFactory(
-	d *db.Db,
-	sessStorage sessions.IStorage,
-	notificator notifications.ISender,
-	authExpiration time.Duration,
-) base.HandlerFunc {
-	return func(c *gin.Context) (resp interface{}, code int, err error) {
-		var params UserSignupRequest
-		err = c.ShouldBindJSON(&params)
-		if err != nil {
-			return
-		}
-
-		// create user model
-		user, err := models.NewUser(params.Phone, params.Password, models.UserStatusPending, params.ReferrerPhone)
-		if err != nil {
-			// TODO now it's impossible to ensure phone, password and referrer phone is invalid, this must be
-			// implemented inside validator!
-			return
-		}
-
-		// do it in transaction
-		err = d.Tx(func(tx db.ITx) error {
-			user, err = models.CreateUser(tx, user)
-			return err
-		})
-		if err != nil {
-			if err == models.ErrUserAlreadyExists {
-				err = base.NewErrorsView("").AddField("body", "phone", err.Error())
-			} else if err == models.ErrReferrerNotFound {
-				err = base.NewErrorsView("").AddField("body", "referrer_phone", err.Error())
-			}
-			return
-		}
-
-		// create user auth token
-		token, err := sessStorage.New(map[string]interface{}{
-			"id":    user.ID,
-			"phone": user.Phone,
-		}, authExpiration)
-		if err != nil {
-			c.Error(err)
-			err = nil
-		}
-
-		// send notification
-		// TODO signup verification request is required, nice place to do it here
-		err = notificator.Send(
-			notifications.ActionRegistrationCompleted,
-			map[string]interface{}{
-				"phone": user.Phone,
-			},
-			notifications.Urgent,
-		)
-		if err != nil {
-			c.Error(err)
-			err = nil
-		}
-
-		resp, code = UserTokenResponse{
-			Token: string(token),
-		}, 201
-		return
-	}
-}
 
 // SigninHandlerFactory returns handler which perform user authorization, requires session storage to store newly
 // created session
@@ -99,7 +31,7 @@ func SigninHandlerFactory(
 		}
 
 		// attempt to find user
-		user, err := models.GetUserByPhone(d, params.Phone)
+		user, err := models.GetUserByPhoneAndStatus(d, params.Phone, models.UserStatusActive)
 		if err != nil {
 			if err == models.ErrUserNotFound {
 				err = wrongUserOrPasswordErr

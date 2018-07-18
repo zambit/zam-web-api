@@ -18,13 +18,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator"
 	"github.com/stretchr/testify/mock"
 	"gitlab.com/ZamzamTech/wallet-api/models"
 	"net/http"
 	"time"
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
-	"io"
 )
 
 const (
@@ -102,197 +100,77 @@ var _ = Describe("Given the auth api", func() {
 		return store, sender
 	})
 
-	Context("when querying signup", func() {
-		BeforeEachCProvide(
-			func(d *db.Db, sessStore sessions.IStorage, notificator notifications.ISender) base.HandlerFunc {
-				return SignupHandlerFactory(d, sessStore, notificator, authExpire)
-			},
-		)
-
-		Describe("with requests to iStorage and ISender", func() {
-			BeforeEachCInvoke(func(sessStore *sessmocks.IStorage, sender *notifmocks.ISender) {
-				// setup mocks
-				sessStore.On("New", mock.Anything, authExpire).Return(mockedToken, nil)
-				sender.On(
-					"Send",
-					notifications.ActionRegistrationCompleted,
-					mock.Anything,
-					notifications.Urgent,
-				).Return(nil)
-			})
-
-			ItD("should return EOF", func(handler base.HandlerFunc) {
-				r, err := http.NewRequest("", "", bytes.NewReader([]byte{}))
-				Expect(err).NotTo(HaveOccurred())
-
-				_, _, err = handler(&gin.Context{Request: r})
-				Expect(err).To(HaveOccurred())
-				Expect(err).To(Equal(io.EOF))
-			})
-
-			ItD("should be valid request", func(handler base.HandlerFunc, d *db.Db, sessStore *sessmocks.IStorage, sender *notifmocks.ISender) {
-				// perform request
-				data, code, err := handler(CreateSUContext(validPhone1, pass1, pass1, nil))
-				Expect(err).NotTo(HaveOccurred())
-				Expect(code).To(Equal(201))
-				Expect(data).To(BeEquivalentTo(tokenResp{Token: string(mockedToken)}))
-
-				// query just created user
-				user, err := models.GetUserByPhone(d, validPhone1)
-				Expect(err).NotTo(HaveOccurred())
-
-				// validate calls
-				Expect(len(sessStore.Calls)).To(Equal(1))
-				Expect(sessStore.Calls[0].Method).To(Equal("New"))
-				Expect(len(sessStore.Calls[0].Arguments)).To(Equal(2))
-
-				sessArg := sessStore.Calls[0].Arguments[0].(map[string]interface{})
-				Expect(sessArg).To(HaveKeyWithValue("id", user.ID))
-			})
-
-			Describe("with referrer", func() {
-				type refererID int64
-
-				BeforeEachCProvide(func(d *db.Db) refererID {
-					referrer, err := models.NewUser(validPhone1, pass1, models.UserStatusActive, nil)
-					Expect(err).NotTo(HaveOccurred())
-					referrer, err = models.CreateUser(d, referrer)
-					Expect(err).NotTo(HaveOccurred())
-
-					return refererID(referrer.ID)
-				})
-
-				ItD("should be failed due to user already exists", func(handler base.HandlerFunc, _ refererID) {
-					data, _, err := handler(CreateSUContext(validPhone1, pass1, pass1, nil))
-					Expect(err).To(HaveOccurred())
-					Expect(err).To(
-						Equal(base.NewErrorsView("").AddField("body", "phone", models.ErrUserAlreadyExists.Error())),
-					)
-					Expect(data).To(BeNil())
-				})
-
-				ItD("should be failed due to no such referrer", func(handler base.HandlerFunc) {
-					rph := validPhone3
-					// perform request
-					data, _, err := handler(CreateSUContext(validPhone2, pass1, pass1, &rph))
-					Expect(err).To(
-						Equal(base.NewErrorsView("").AddField(
-							"body", "referrer_phone", models.ErrReferrerNotFound.Error()),
-						),
-					)
-					Expect(data).To(BeNil())
-				})
-
-				ItD("should be ok with existed referrer", func(d *db.Db, handler base.HandlerFunc, refID refererID) {
-					rph := validPhone1
-					// perform request
-					data, code, err := handler(CreateSUContext(validPhone2, pass1, pass1, &rph))
-					Expect(err).NotTo(HaveOccurred())
-					Expect(code).To(Equal(201))
-					Expect(data).To(BeEquivalentTo(tokenResp{string(mockedToken)}))
-
-					user, err := models.GetUserByPhone(d, validPhone2)
-					Expect(err).NotTo(HaveOccurred())
-					Expect(*user.ReferrerID).To(BeEquivalentTo(refID))
-				})
-			})
-		})
-
-		Describe("checking params", func() {
-			ItD("failed due to missing all params", func(handler base.HandlerFunc) {
-				data, _, err := handler(CreateContext("POST", "signup", map[string]interface{}{}))
-				Expect(data).To(BeNil())
-				Expect(err).To(BeAssignableToTypeOf(validator.ValidationErrors{}))
-
-				vErr := err.(validator.ValidationErrors)
-
-				Expect(len(vErr)).To(Equal(3))
-				for i, ns := range []string{
-					"UserSignupRequest.Phone",
-					"UserSignupRequest.Password",
-					"UserSignupRequest.PasswordConfirmation",
-				} {
-					Expect(vErr[i].Tag()).To(Equal("required"))
-					Expect(vErr[i].StructNamespace()).To(Equal(ns))
-				}
-			})
-
-			ItD("failed due to password short", func(handler base.HandlerFunc) {
-				data, _, err := handler(CreateSUContext(validPhone1, shortPass, shortPass, nil))
-				Expect(data).To(BeNil())
-				Expect(err).To(BeAssignableToTypeOf(validator.ValidationErrors{}))
-
-				vErr := err.(validator.ValidationErrors)
-				Expect(len(vErr)).To(Equal(1))
-				Expect(vErr[0].Tag()).To(Equal("min"))
-				Expect(vErr[0].StructNamespace()).To(Equal("UserSignupRequest.Password"))
-			})
-
-			ItD("failed due to password confirmation not eq to password", func(handler base.HandlerFunc) {
-				data, _, err := handler(CreateSUContext(validPhone1, pass1, pass2, nil))
-				Expect(data).To(BeNil())
-				Expect(err).To(BeAssignableToTypeOf(validator.ValidationErrors{}))
-
-				vErr := err.(validator.ValidationErrors)
-				Expect(len(vErr)).To(Equal(1))
-				Expect(vErr[0].Tag()).To(Equal("eqfield"))
-				Expect(vErr[0].Param()).To(Equal("Password"))
-				Expect(vErr[0].StructNamespace()).To(Equal("UserSignupRequest.PasswordConfirmation"))
-			})
-		})
-	})
-
 	Context("when querying singin requests", func() {
-		BeforeEachCInvoke(func(d *db.Db) {
-			user, err := models.NewUser(validPhone1, pass1, models.UserStatusActive, nil)
-			Expect(err).NotTo(HaveOccurred())
-			user, err = models.CreateUser(d, user)
-			Expect(err).NotTo(HaveOccurred())
-		})
-
 		BeforeEachCProvide(
 			func(d *db.Db, sessStore sessions.IStorage, notificator notifications.ISender) base.HandlerFunc {
 				return SigninHandlerFactory(d, sessStore, authExpire)
 			},
 		)
 
-		Context("IStorage occurs get", func() {
-			BeforeEachCInvoke(func(sessStore *sessmocks.IStorage) {
-				sessStore.On("New", mock.Anything, authExpire).Return(mockedToken, nil)
-			})
-
-			ItD("should return token", func(handler base.HandlerFunc, sessStore *sessmocks.IStorage) {
-				data, _, err := handler(CreateSIContext(validPhone1, pass1))
+		Context("when user have active status", func() {
+			BeforeEachCInvoke(func(d *db.Db) {
+				user, err := models.NewUser(validPhone1, pass1, models.UserStatusActive, nil)
 				Expect(err).NotTo(HaveOccurred())
-				Expect(data).To(BeEquivalentTo(tokenResp{
-					Token: string(mockedToken),
-				}))
+				user, err = models.CreateUser(d, user)
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-				// check user phone must be stored in session
-				Expect(len(sessStore.Calls)).To(Equal(1))
-				Expect(len(sessStore.Calls[0].Arguments)).To(Equal(2))
+			Context("IStorage occurs get", func() {
+				BeforeEachCInvoke(func(sessStore *sessmocks.IStorage) {
+					sessStore.On("New", mock.Anything, authExpire).Return(mockedToken, nil)
+				})
 
-				sessPayload := sessStore.Calls[0].Arguments[0]
-				Expect(sessPayload).To(HaveKeyWithValue("phone", types.Phone(validPhone1)))
+				ItD("should return token", func(handler base.HandlerFunc, sessStore *sessmocks.IStorage) {
+					data, _, err := handler(CreateSIContext(validPhone1, pass1))
+					Expect(err).NotTo(HaveOccurred())
+					Expect(data).To(BeEquivalentTo(tokenResp{
+						Token: string(mockedToken),
+					}))
+
+					// check user phone must be stored in session
+					Expect(len(sessStore.Calls)).To(Equal(1))
+					Expect(len(sessStore.Calls[0].Arguments)).To(Equal(2))
+
+					sessPayload := sessStore.Calls[0].Arguments[0]
+					Expect(sessPayload).To(HaveKeyWithValue("phone", types.Phone(validPhone1)))
+				})
+			})
+
+			ItD("should fail due to wrong password", func(handler base.HandlerFunc) {
+				data, _, err := handler(CreateSIContext(validPhone1, pass2))
+				Expect(err).To(HaveOccurred())
+				Expect(data).To(BeNil())
+				Expect(err).To(Equal(base.NewErrorsView("wrong authorization data").AddField(
+					"body", "phone", "either phone or password are invalid",
+				)))
+			})
+
+			ItD("should fail due to wrong password v2", func(handler base.HandlerFunc) {
+				data, _, err := handler(CreateSIContext(validPhone1, pass3))
+				Expect(err).To(HaveOccurred())
+				Expect(data).To(BeNil())
+				Expect(err).To(Equal(base.NewErrorsView("wrong authorization data").AddField(
+					"body", "phone", "either phone or password are invalid",
+				)))
 			})
 		})
 
-		ItD("should fail due to wrong password", func(handler base.HandlerFunc) {
-			data, _, err := handler(CreateSIContext(validPhone1, pass2))
-			Expect(err).To(HaveOccurred())
-			Expect(data).To(BeNil())
-			Expect(err).To(Equal(base.NewErrorsView("wrong authorization data").AddField(
-				"body", "phone", "either phone or password are invalid",
-			)))
-		})
+		Context("when user doesn't have active status", func() {
+			BeforeEachCInvoke(func(d *db.Db) {
+				user, err := models.NewUser(validPhone1, pass1, models.UserStatusVerified, nil)
+				Expect(err).NotTo(HaveOccurred())
+				user, err = models.CreateUser(d, user)
+				Expect(err).NotTo(HaveOccurred())
+			})
 
-		ItD("should fail due to wrong password v2", func(handler base.HandlerFunc) {
-			data, _, err := handler(CreateSIContext(validPhone1, pass3))
-			Expect(err).To(HaveOccurred())
-			Expect(data).To(BeNil())
-			Expect(err).To(Equal(base.NewErrorsView("wrong authorization data").AddField(
-				"body", "phone", "either phone or password are invalid",
-			)))
+			ItD("should fail due to user isn't active", func(handler base.HandlerFunc) {
+				data, _, err := handler(CreateSIContext(validPhone1, pass1))
+				Expect(err).To(HaveOccurred())
+				Expect(data).To(BeNil())
+				Expect(err).To(Equal(base.NewErrorsView("wrong authorization data").AddField(
+					"body", "phone", "either phone or password are invalid",
+				)))
+			})
 		})
 	})
 

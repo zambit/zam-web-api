@@ -11,7 +11,9 @@ type User struct {
 	Phone    types.Phone
 	Password types.Password
 
-	RegisteredAt time.Time
+	RegisteredAt *time.Time
+	CreatedAt time.Time
+	UpdatedAt time.Time
 
 	ReferrerID    *int64
 	ReferrerPhone *string
@@ -36,11 +38,23 @@ func NewUser(phone, password string, status UserStatusName, referrerPhone *strin
 
 	user.Password = encryptedPass
 	user.Phone = parsedPhone
-	user.RegisteredAt = time.Now().UTC()
+	user.CreatedAt = time.Now().UTC()
 	user.Status = status
-	user.ReferrerPhone = referrerPhone
+	if referrerPhone != nil && *referrerPhone != "" {
+		user.ReferrerPhone = referrerPhone
+	}
 
 	return
+}
+
+// SetStatus
+func (user *User) SetStatus(newStatus UserStatusName) {
+	user.UpdatedAt = time.Now().UTC()
+	user.Status = newStatus
+	if newStatus == UserStatusActive {
+		registeredAt := time.Now().UTC()
+		user.RegisteredAt = &registeredAt
+	}
 }
 
 // UserStatusName represents UserStatuses table column type
@@ -48,8 +62,10 @@ type UserStatusName string
 
 // Common user status names
 const (
-	UserStatusPending = UserStatusName("pending")
-	UserStatusActive  = UserStatusName("active")
+	UserStatusCreated  = UserStatusName("created")
+	UserStatusPending  = UserStatusName("pending")
+	UserStatusVerified = UserStatusName("verified")
+	UserStatusActive   = UserStatusName("active")
 )
 
 // UserStatus represents user status

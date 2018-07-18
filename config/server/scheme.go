@@ -11,6 +11,15 @@ type AuthScheme struct {
 
 	// TokenExpire authorization token live duration before become expire (example: 24h45m15s)
 	TokenExpire time.Duration
+
+	SignUpTokenExpire time.Duration
+	SignUpRetryDelay  time.Duration
+}
+
+// StorageScheme holds values specific for nosql storage
+type StorageScheme struct {
+	// URI used to connect to the storage, now only redis is supported, leave empty to use in-mem storage
+	URI string
 }
 
 // Scheme web-server params
@@ -23,4 +32,10 @@ type Scheme struct {
 
 	// Auth
 	Auth AuthScheme
+
+	// Storage
+	Storage StorageScheme
+
+	// GeneratorType specifies generator type (now only "mem" and "" allowed)
+	GeneratorType string
 }

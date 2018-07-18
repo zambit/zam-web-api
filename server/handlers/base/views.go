@@ -60,13 +60,13 @@ func NewFieldsErrorsView(validationErrs validator.ValidationErrors) (view Fields
 		)
 	}
 	view.Fields = fieldErrs
-	view.Message = "some fields contains bad formatted or invalid values"
+	view.Message = "wrong parameters"
 	return
 }
 
 // coerceValidationErr coerce different types of validation to look like backend message
 func coerceValidationErr(err validator.FieldError) (paramName, message string) {
-	paramName = strings.ToLower(err.Field())
+	paramName = err.Field()
 
 	switch err.Tag() {
 	case "required":
@@ -76,6 +76,8 @@ func coerceValidationErr(err validator.FieldError) (paramName, message string) {
 	case "eqfield":
 		// TODO improve fields naming especially with cross-field validations
 		message = fmt.Sprintf("this field must be equal to %s", strings.ToLower(err.Param()))
+	case "phone":
+		message = "phone is invalid"
 	default:
 		if e, ok := err.(error); ok {
 			message = e.Error()
@@ -89,7 +91,7 @@ func coerceValidationErr(err validator.FieldError) (paramName, message string) {
 // NewErrorsView
 func NewErrorsView(message string) (view FieldsErrorView) {
 	if message == "" {
-		message = "some fields contains bad formatted or invalid values"
+		message = "wrong parameters"
 	}
 	view.Message = message
 	return
@@ -98,6 +100,12 @@ func NewErrorsView(message string) (view FieldsErrorView) {
 // AddField
 func (err FieldsErrorView) AddField(input, name, message string) FieldsErrorView {
 	err.Fields = append(err.Fields, FieldErrorDescr{name, input, message})
+	return err
+}
+
+// AddFieldDescr
+func (err FieldsErrorView) AddFieldDescr(descr FieldErrorDescr) FieldsErrorView {
+	err.Fields = append(err.Fields, descr)
 	return err
 }
 
