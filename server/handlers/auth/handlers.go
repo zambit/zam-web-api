@@ -9,7 +9,6 @@ import (
 	"time"
 	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
 	"github.com/pkg/errors"
-	"gitlab.com/ZamzamTech/wallet-api/models/types"
 )
 
 // SigninHandlerFactory returns handler which perform user authorization, requires session storage to store newly
@@ -52,7 +51,7 @@ func SigninHandlerFactory(
 		// create new session token
 		token, err := sessStorage.New(map[string]interface{}{
 			"id":    user.ID,
-			"phone": user.Phone,
+			"phone": string(user.Phone),
 		}, authExpiration)
 		if err != nil {
 			// token not created, so whole handler failed
@@ -85,7 +84,9 @@ func SignoutHandlerFactory(sessStorage sessions.IStorage, tokenName string) base
 // RefreshTokenHandlerFactory returns handler which checks current token then refresh it
 func RefreshTokenHandlerFactory(
 	sessStorage sessions.IStorage,
-	tokenName string) base.HandlerFunc {
+	tokenName string,
+	authExpiration time.Duration,
+) base.HandlerFunc {
 
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
 		authToken, err := middlewares.GetAuthTokenFromContext(c, tokenName)
@@ -93,7 +94,7 @@ func RefreshTokenHandlerFactory(
 			return
 		}
 
-		newToken, err := sessStorage.RefreshToken(sessions.Token(authToken))
+		newToken, err := sessStorage.RefreshToken(sessions.Token(authToken), authExpiration)
 		if err != nil {
 			return
 		}
@@ -111,7 +112,7 @@ func CheckHandlerFactory() base.HandlerFunc {
 			err = errors.New("auth passed but no user data attached")
 			return
 		}
-		resp = UserPhoneResponse{Phone: string(userData.(map[string]interface{})["phone"].(types.Phone))}
+		resp = UserPhoneResponse{Phone: userData["phone"].(string)}
 		return
 	}
 }

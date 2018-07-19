@@ -5,6 +5,8 @@ import (
 	"github.com/spf13/viper"
 	"gitlab.com/ZamzamTech/wallet-api/config"
 	"strings"
+	"encoding/json"
+	"os"
 )
 
 // Create and initialize root command for given viper instance
@@ -35,7 +37,14 @@ func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 			v.AutomaticEnv()
 
 			// Unmarshal it
-			return v.Unmarshal(cfg)
+			err = v.Unmarshal(cfg)
+			if err != nil {
+				return
+			}
+
+			e := json.NewEncoder(os.Stdout)
+			e.SetIndent(" ", "\t")
+			return e.Encode(cfg)
 		},
 	}
 

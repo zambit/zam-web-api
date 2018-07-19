@@ -20,7 +20,7 @@ func Register(deps dependencies.Dependencies) gin.IRouter {
 	)))
 
 	group.POST("/refresh_token", deps.AuthMiddleware, base.WrapHandler(RefreshTokenHandlerFactory(
-		deps.SessStorage, deps.Conf.Auth.TokenName,
+		deps.SessStorage, deps.Conf.Auth.TokenName, deps.Conf.Auth.TokenExpire,
 	)))
 
 	group.GET("/check", deps.AuthMiddleware, base.WrapHandler(CheckHandlerFactory()))

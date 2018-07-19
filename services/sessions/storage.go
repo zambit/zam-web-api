@@ -20,17 +20,17 @@ var (
 // Token represents user session token
 type Token []byte
 
-// IStorage collects, persist and manages user auth sessions via tokens and associated-optional data
+// IStorage collects, persist and manages user auth sessions via tokens and associated-optional data.
 type IStorage interface {
 	// New creates new session
-	New(data interface{}, expireAfter time.Duration) (Token, error)
+	New(data map[string]interface{}, expireAfter time.Duration) (Token, error)
 
 	// Get returns data associated with this token
-	Get(token Token) (data interface{}, err error)
+	Get(token Token) (data map[string]interface{}, err error)
 
 	// RefreshToken
-	RefreshToken(oldToken Token) (Token, error)
+	RefreshToken(oldToken Token, expireAfter time.Duration) (Token, error)
 
-	// Delete makes token invalid so sequential Get or Exists call will returns ErrNotFound
+	// Delete makes token invalid so sequential Get call will returns ErrNotFound
 	Delete(toke Token) error
 }

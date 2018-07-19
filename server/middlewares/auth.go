@@ -57,12 +57,8 @@ func GetAuthTokenFromContext(c *gin.Context, tokenName string) (string, error) {
 }
 
 // GetUserDataFromContext gets user data extracted from session storage by auth-token during middleware work
-func GetUserDataFromContext(c *gin.Context) interface{} {
-	val, exists := c.Get("user_data")
-	if !exists {
-		return nil
-	}
-	return val
+func GetUserDataFromContext(c *gin.Context) map[string]interface{} {
+	return c.GetStringMap("user_data")
 }
 
 //

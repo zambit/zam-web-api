@@ -2,25 +2,31 @@ package server
 
 import (
 	"fmt"
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
+	"go.uber.org/dig"
+	"io"
+	"time"
+
 	"gitlab.com/ZamzamTech/wallet-api/config"
 	serverconf "gitlab.com/ZamzamTech/wallet-api/config/server"
 	"gitlab.com/ZamzamTech/wallet-api/db"
 	_ "gitlab.com/ZamzamTech/wallet-api/server/handlers"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth"
-	"gitlab.com/ZamzamTech/wallet-api/server/handlers/static"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions/mem"
-	memnosql "gitlab.com/ZamzamTech/wallet-api/services/nosql/mem"
-	"go.uber.org/dig"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
-	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
-	"github.com/gin-contrib/cors"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth/dependencies"
+	"gitlab.com/ZamzamTech/wallet-api/server/handlers/static"
+	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
+	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
+	nosqlfactory "gitlab.com/ZamzamTech/wallet-api/services/nosql/factory"
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
+	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
+	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	sessmem "gitlab.com/ZamzamTech/wallet-api/services/sessions/mem"
+	sessjwt "gitlab.com/ZamzamTech/wallet-api/services/sessions/jwt"
+	"github.com/pkg/errors"
 )
 
 // Create and initialize server command for given viper instance
@@ -65,13 +71,51 @@ func serverMain(cfg config.RootScheme) (err error) {
 	}
 
 	// provide sessions storage
-	err = c.Provide(mem.New)
+	err = c.Provide(func(conf serverconf.Scheme, persistentStorage nosql.IStorage) (res sessions.IStorage, err error) {
+		// catch jwt storage panics
+		defer func() {
+			r := recover()
+			if r != nil {
+				if e, ok := r.(error); ok {
+					err = e
+				} else {
+					panic(r)
+				}
+			}
+		}()
+
+		switch conf.Auth.TokenStorage {
+		case "mem", "":
+			return sessmem.New(), nil
+		case "jwt", "jwtpersistent":
+			if conf.JWT == nil {
+				return nil, errors.New("jwt like token storage required, but jwt configuration not provided")
+			}
+			res = sessjwt.New(conf.JWT.Method, []byte(conf.JWT.Secret), func() time.Time { return time.Now().UTC() })
+
+			if conf.Auth.TokenStorage == "jwtpersistent" {
+				res = sessjwt.WithStorage(
+					res, persistentStorage, func(data map[string]interface{}, token string) string {
+						return fmt.Sprintf("sessions:%v:jwt:token_id:%s", data["phone"], token)
+					},
+				)
+			}
+			return
+		default:
+			return nil, fmt.Errorf("unsupported token storage type: %s", conf.Auth.TokenStorage)
+		}
+	})
 	if err != nil {
 		return
 	}
 
 	// provide nosql storage
-	err = c.Provide(memnosql.New)
+	err = c.Provide(func(conf serverconf.Scheme) (nosql.IStorage, io.Closer, error) {
+		if conf.Storage.URI == "" {
+			conf.Storage.URI = "mem://"
+		}
+		return nosqlfactory.NewFromUri(conf.Storage.URI)
+	})
 	if err != nil {
 		return
 	}
@@ -129,11 +173,19 @@ func serverMain(cfg config.RootScheme) (err error) {
 		return middlewares.AuthMiddlewareFactory(sessStorage, cfg.Server.Auth.TokenName)
 	}, dig.Name("auth"))
 
+	// close all resources
+	defer c.Invoke(func(closers ...io.Closer) {
+		for _, c := range closers {
+			c.Close()
+		}
+	})
+
 	// Run server!
 	err = c.Invoke(func(engine *gin.Engine, dependencies dependencies.Dependencies) error {
 		auth.Register(dependencies)
 		static.Register(engine)
 		return engine.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))
 	})
+
 	return
 }

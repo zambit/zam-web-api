@@ -12,13 +12,30 @@ type AuthScheme struct {
 	// TokenExpire authorization token live duration before become expire (example: 24h45m15s)
 	TokenExpire time.Duration
 
+	// TokenType describes token storage type.
+	//
+	// Possible values:
+	//
+	//  mem - inmemory token storage
+	//
+	//  jwt - jwt token storage
+	//
+	//  jwtpersisten - jwt token storage which uses persistent storage for token validation
+	TokenStorage string
+
 	SignUpTokenExpire time.Duration
 	SignUpRetryDelay  time.Duration
 }
 
 // StorageScheme holds values specific for nosql storage
 type StorageScheme struct {
-	// URI used to connect to the storage, now only redis is supported, leave empty to use in-mem storage
+	// URI used to connect to the storage.
+	//
+	// Possible schemes:
+	//
+	//  mem:// - in-memory storage
+	//
+	//  redis:// or rediss:// - redis storage, also supports redis cluster passing hosts slitted by comma
 	URI string
 }
 
@@ -38,6 +55,12 @@ type Scheme struct {
 
 	// Port to listen on, negative values will cause UB
 	Port int
+
+	// JWT specific configuration, there is no default values, so if token jwt like storage is used, this must be defined
+	JWT *struct{
+		Secret string
+		Method string
+	}
 
 	// Auth
 	Auth AuthScheme

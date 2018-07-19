@@ -9,7 +9,7 @@ import (
 )
 
 type valWithExpire struct {
-	val       interface{}
+	val       map[string]interface{}
 	expireAt  time.Time
 	createdAt time.Time
 }
@@ -28,7 +28,7 @@ func New() sessions.IStorage {
 }
 
 // New trivial IStorage implementation
-func (s *memStorage) New(data interface{}, expireAfter time.Duration) (sessions.Token, error) {
+func (s *memStorage) New(data map[string]interface{}, expireAfter time.Duration) (sessions.Token, error) {
 	token := sessions.Token(uuid.New().String())
 
 	s.guard.Lock()
@@ -44,7 +44,7 @@ func (s *memStorage) New(data interface{}, expireAfter time.Duration) (sessions.
 }
 
 // RefreshToken
-func (s *memStorage) RefreshToken(oldToken sessions.Token) (newToken sessions.Token, err error) {
+func (s *memStorage) RefreshToken(oldToken sessions.Token, expireAfter time.Duration) (newToken sessions.Token, err error) {
 	if err = validateToken(oldToken); err != nil {
 		return
 	}
@@ -63,14 +63,14 @@ func (s *memStorage) RefreshToken(oldToken sessions.Token) (newToken sessions.To
 	}
 	s.values[string(oldToken)] = valWithExpire{
 		val:       val.val,
-		expireAt:  time.Now().Add(val.expireAt.Sub(val.createdAt)),
+		expireAt:  time.Now().Add(expireAfter),
 		createdAt: time.Now(),
 	}
 	return
 }
 
 // Get way more simpler then New
-func (s *memStorage) Get(token sessions.Token) (data interface{}, err error) {
+func (s *memStorage) Get(token sessions.Token) (data map[string]interface{}, err error) {
 	if err = validateToken(token); err != nil {
 		return
 	}
