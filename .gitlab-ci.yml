@@ -118,7 +118,7 @@ deploy_on_staging:
 
     # generate config
     - cd $STAGING_DEPLOY_DIR
-    - "echo '{\"env\": \"staging\", \"db\": {\"uri\": \"'$STAGING_DB_URI'\"}}' > conf.json"
+    - "echo '{\"env\": \"staging\", \"server\": {\"generator\": {\"codealphabet\": \"4\"}}, \"db\": {\"uri\": \"'$STAGING_DB_URI'\"}}' > conf.json"
 
     # trigger systemd to restart service by softly killing old instance
     - killall -1 web-api
