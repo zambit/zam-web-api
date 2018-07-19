@@ -19,7 +19,7 @@ func Register(group gin.IRouter, deps dependencies.Dependencies) gin.IRouter {
 		deps.Conf.Auth.SignUpTokenExpire,
 	)))
 
-	group.POST("/finish", base.WrapHandler(FinishHandlerFactory(
+	group.PUT("/finish", base.WrapHandler(FinishHandlerFactory(
 		deps.Db, deps.Storage, deps.Notificator, deps.SessStorage, deps.Conf.Auth.TokenExpire,
 	)))
 	return group

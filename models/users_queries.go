@@ -92,28 +92,38 @@ func CreateUser(tx db.ITx, user User) (newUser User, err error) {
 
 	// since there is conditional statement which changes internals of sql query
 	const (
-		insertStart = `INSERT INTO users (phone, password, registered_at, referrer_id, status_id) `
+		insertStart = `INSERT INTO users 
+			(phone, password, created_at, registered_at, updated_at, referrer_id, status_id)`
 		insertAppend = `RETURNING id`
-		selectStatus = `(SELECT id FROM user_statuses WHERE name = $4)`
+		selectStatus = `(SELECT id FROM user_statuses WHERE name = $1)`
 	)
 
 	var query string
 	var queryArgs []interface{}
 	// looks so wild, perform so fast
 	if user.ReferrerPhone != nil {
-		query = insertStart + ` SELECT $1, $2, $3, u.id, ` + selectStatus + ` 
+		query = insertStart + ` SELECT $2, $3, $4, $5, $6, u.id, ` + selectStatus + ` 
 			FROM 
 				users u
 			INNER JOIN user_statuses us ON u.status_id = us.id
 			WHERE 
-				u.phone = $5 and 
-				us.name = $6` + insertAppend
+				u.phone = $7 and 
+				us.name = $8` + insertAppend
 		queryArgs = []interface{} {
-			user.Phone, user.Password, user.RegisteredAt, user.Status, string(refPhone), UserStatusActive,
+			user.Status,
+			user.Phone,
+			user.Password,
+			user.CreatedAt,
+			user.RegisteredAt,
+			user.UpdatedAt,
+			string(refPhone),
+			UserStatusActive,
 		}
 	} else {
-		query = insertStart + `VALUES ($1, $2, $3, null, ` + selectStatus + `) ` + insertAppend
-		queryArgs = []interface{} {user.Phone, user.Password, user.RegisteredAt, user.Status}
+		query = insertStart + `VALUES ($2, $3, $4, $5, $6, $7, ` + selectStatus + `) ` + insertAppend
+		queryArgs = []interface{} {
+			user.Status, user.Phone, user.Password, user.CreatedAt, user.RegisteredAt, user.UpdatedAt, nil,
+		}
 	}
 
 	err = tx.QueryRow(query, queryArgs...).Scan(&newUser.ID)

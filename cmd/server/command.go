@@ -45,17 +45,6 @@ func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 	return command
 }
 
-//
-type staticGenerator struct {}
-
-func (*staticGenerator) RandomCode() string {
-	return "4444"
-}
-
-func (*staticGenerator) RandomToken() string {
-	return "signup_token"
-}
-
 // serverMain
 func serverMain(cfg config.RootScheme) (err error) {
 	// create DI container and populate it with providers
@@ -89,14 +78,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 
 	// provide static generator
 	err = c.Provide(func(conf serverconf.Scheme) notifications.IGenerator {
-		switch conf.GeneratorType {
-		case "mem":
-			fallthrough
-		case "":
-			return &staticGenerator{}
-		default:
-			panic(fmt.Sprintf("unsuported generator type specified %s", conf.GeneratorType))
-		}
+		return notifications.NewWithCodeAlphabet(conf.Generator.CodeLen, conf.Generator.CodeAlphabet)
 	})
 	if err != nil {
 		return

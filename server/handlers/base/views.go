@@ -75,9 +75,13 @@ func coerceValidationErr(err validator.FieldError) (paramName, message string) {
 		message = fmt.Sprintf("field value must be at least %s items long", err.Param())
 	case "eqfield":
 		// TODO improve fields naming especially with cross-field validations
-		message = fmt.Sprintf("this field must be equal to %s", strings.ToLower(err.Param()))
+		message = fmt.Sprintf("this field must be equal to \"%s\"", strings.ToLower(err.Param()))
 	case "phone":
 		message = "phone is invalid"
+	case "alpha":
+		message = "only latin-alphabet letters allowed"
+	case "alphanum":
+		message = "only latin-alphabet letters or digits allowed"
 	default:
 		if e, ok := err.(error); ok {
 			message = e.Error()

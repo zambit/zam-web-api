@@ -81,7 +81,6 @@ paths:
                 }
                 ```
               * Not so fast! Next code dispatch will be awaliable in %d seconds...
-              * Action not allowed
           schema:
             $ref: "#/definitions/Error"
         500:
@@ -107,6 +106,7 @@ paths:
                 type: string
                 description: Verification code obtained by SMS
             required:
+              - phone
               - verification_code
       responses:
         200:
@@ -158,7 +158,7 @@ paths:
             $ref: "#/definitions/Error"
   
   /auth/signup/finish:
-    post:
+    put:
       summary: Finish account creation by setting user password, this request requires SignUp Token
       parameters:
         - in: body
@@ -182,6 +182,7 @@ paths:
                 type: string
                 format: password
             required:
+              - phone
               - signup_token
               - password
               - password_confirmation

@@ -22,6 +22,15 @@ type StorageScheme struct {
 	URI string
 }
 
+// GeneratorScheme
+type GeneratorScheme struct {
+	// CodeLen desired length of generated code
+	CodeLen int
+
+	// CodeAlphabet sets of letters used to generate code
+	CodeAlphabet string
+}
+
 // Scheme web-server params
 type Scheme struct {
 	// Host to listen on such address, accept both ip4 and ip6 addresses
@@ -36,6 +45,6 @@ type Scheme struct {
 	// Storage
 	Storage StorageScheme
 
-	// GeneratorType specifies generator type (now only "mem" and "" allowed)
-	GeneratorType string
+	// Generator
+	Generator GeneratorScheme
 }
