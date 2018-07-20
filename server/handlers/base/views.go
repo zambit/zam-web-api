@@ -36,6 +36,11 @@ type FieldErrorDescr struct {
 	Message string `json:"message"`
 }
 
+// Error implements error interface
+func (err FieldErrorDescr) Error() string {
+	return fmt.Sprintf(`field error: %s{%s: %s}`, err.Input, err.Name, err.Message)
+}
+
 // FieldsErrorView represents errors occurred relative to the sets of fields
 type FieldsErrorView struct {
 	ErrorView `json:",inline"`

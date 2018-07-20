@@ -100,7 +100,7 @@ var _ = Describe("Given user signup flow", func() {
 				notifSender notifications.ISender,
 				generator notifications.IGenerator,
 			) base.HandlerFunc {
-				return StartHandlerFactory(d, notifSender, generator, storage, time.Minute, time.Minute)
+				return StartHandlerFactory(d, notifSender, generator, storage, time.Minute)
 			},
 		)
 		BeforeEachCProvide(func(d *db.Db) models.User {
@@ -117,8 +117,8 @@ var _ = Describe("Given user signup flow", func() {
 			BeforeEachCInvoke(func(storage *nosqlmock.IStorage, notifSender *notifmock.ISender, generator *notifmock.IGenerator) {
 				// setup mocks
 				generator.On("RandomCode").Return(confirmCode)
-				storage.On("SetWithExpire", "user_reg_conf_"+validPhone2, confirmCode, mock.Anything).Return(nil)
-				storage.On("Delete", "user_su_token_"+validPhone2).Return(nil)
+				storage.On("SetWithExpire", "user:"+validPhone2+":signup:code", confirmCode, mock.Anything).Return(nil)
+				storage.On("Delete", "user:"+validPhone2+":signup:token").Return(nil)
 				notifSender.On(
 					"Send",
 					notifications.ActionRegistrationConfirmationRequested,
@@ -294,8 +294,9 @@ var _ = Describe("Given user signup flow", func() {
 
 		Context("when code is valid", func() {
 			BeforeEachCInvoke(func(storage *nosqlmock.IStorage, generator *notifmock.IGenerator) {
-				storage.On("Get", "user_reg_conf_"+validPhone1).Return(confirmCode, nil)
-				storage.On("SetWithExpire", "user_su_token_"+validPhone1, signUpToken, mock.Anything).Return(nil)
+				storage.On("Get", "user:"+validPhone1+":signup:code").Return(confirmCode, nil)
+				storage.On("Delete", "user:"+validPhone1+":signup:code").Return(nil)
+				storage.On("SetWithExpire", "user:"+validPhone1+":signup:token", signUpToken, mock.Anything).Return(nil)
 				generator.On("RandomToken").Return(signUpToken)
 			})
 
@@ -319,7 +320,7 @@ var _ = Describe("Given user signup flow", func() {
 
 		Context("when code is wrong", func() {
 			BeforeEachCInvoke(func(storage *nosqlmock.IStorage, generator *notifmock.IGenerator) {
-				storage.On("Get", "user_reg_conf_"+validPhone1).Return(confirmCode2, nil)
+				storage.On("Get", "user:"+validPhone1+":signup:code").Return(confirmCode2, nil)
 			})
 
 			ItD("should return verification code error", func(d *db.Db, handler base.HandlerFunc, user models.User) {
@@ -364,13 +365,14 @@ var _ = Describe("Given user signup flow", func() {
 				notifier *notifmock.ISender,
 				sessStorage *sessmock.IStorage,
 			) {
-				storage.On("Get", "user_su_token_"+validPhone1).Return(signUpToken, nil)
+				storage.On("Get", "user:"+validPhone1+":signup:token").Return(signUpToken, nil)
 				sessStorage.On(
 					"New", map[string]interface{}{
 						"id":    user.ID,
 						"phone": user.Phone,
 					}, time.Minute,
 				).Return(sessions.Token(authToken), nil)
+				storage.On("Delete", "user:"+validPhone1+":signup:token").Return(nil)
 				notifier.On(
 					"Send", notifications.ActionRegistrationCompleted, map[string]interface{}{
 						"id":    user.ID,
@@ -407,7 +409,7 @@ var _ = Describe("Given user signup flow", func() {
 				notifier *notifmock.ISender,
 				sessStorage *sessmock.IStorage,
 			) {
-				storage.On("Get", "user_su_token_"+validPhone1).Return(signUpToken, nil)
+				storage.On("Get", "user:"+validPhone1+":signup:token").Return(signUpToken, nil)
 			})
 
 			ItD("should return ok because token is valid", func(d *db.Db, user models.User, handler base.HandlerFunc) {

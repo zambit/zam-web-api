@@ -11,7 +11,6 @@ func Register(group gin.IRouter, deps dependencies.Dependencies) gin.IRouter {
 	group.POST("/start", base.WrapHandler(StartHandlerFactory(
 		deps.Db, deps.Notificator, deps.Generator, deps.Storage,
 		deps.Conf.Auth.SignUpTokenExpire,
-		deps.Conf.Auth.SignUpRetryDelay,
 	)))
 
 	group.POST("/verify", base.WrapHandler(VerifyHandlerFactory(
