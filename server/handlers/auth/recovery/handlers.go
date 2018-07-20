@@ -130,8 +130,7 @@ func VerifyHandlerFactory(
 		},
 		getUserState,
 		func(tx db.ITx, storage nosql.IStorage, user models.User, newState confflow.State, params interface{}) (err error) {
-			// update user status
-			_, err = models.UpdateUserStatus(tx, user, models.UserStatusVerified)
+			// do nothing, confirmation flow does all job for us
 			return
 		},
 		func(resources confflow.ExternalResources, request interface{}, bErr base.FieldsErrorView) (err error) {
