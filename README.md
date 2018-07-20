@@ -90,7 +90,14 @@ Represents command which runs **Wallet-Web-Api** server, it accept arguments whi
 #### Usage
 
 ```bash
-./wallet_api_binary server [flags]
+./wallet_api_binary [root_flags] server [flags]
+```
+
+#### Root flags
+
+```
+-c, --config string   specifies configuration file to load from
+-e, --env string      specifies current environment (prod/dev/test) (default "test")
 ```
 
 #### Flags
@@ -105,9 +112,15 @@ Represents command which runs **Wallet-Web-Api** server, it accept arguments whi
 
 Currently **Wallet-Web-Api** exports such endpoints
 
-* `POST /api/v1/auth/signup`
-* `POST /api/v1/auth/signin`
+* `POST   /api/v1/auth/signup/start`
+* `POST   /api/v1/auth/signup/verify`
+* `PUT    /api/v1/auth/signup/finish`
+* `POST   /api/v1/auth/recovery/finish`
+* `POST   /api/v1/auth/recovery/finish`
+* `PUT    /api/v1/auth/recovery/finish`
+* `POST   /api/v1/auth/signin`
 * `DELETE /api/v1/auth/signout`
-* `POST /api/v1/auth/check`
+* `GET    /api/v1/auth/check`
+* `POST   /api/v1/auth/refresh_token`
 
 Also some endpoints requires `Authorization` header, so it have not be filtered.

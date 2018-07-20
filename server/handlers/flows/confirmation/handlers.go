@@ -220,6 +220,7 @@ func FinishHandlerFactory(
 	respFactory func(tx db.ITx, user models.User) (interface{}, error),
 	finishedAction string,
 	finishTokenKeyPattern string,
+	tokenFieldName string,
 ) base.HandlerFunc {
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
 		params, err := paramsOrErr(c, resources, factory, postValidateFunc)
@@ -242,7 +243,11 @@ func FinishHandlerFactory(
 			tokenKey := finishTokenKey(finishTokenKeyPattern, user)
 			token, err := resources.Storage.Get(tokenKey)
 			if err == nosql.ErrNoSuchKeyFound || getTokenFromParams(params) != token {
-				err = base.NewErrorsView("").AddFieldDescr(errFieldWrongToken)
+				err = base.FieldErrorDescr{
+					Name:    tokenFieldName,
+					Input:   "body",
+					Message: fmt.Sprintf("%s is wrong", tokenFieldName),
+				}
 				return
 			}
 			// delete finish token

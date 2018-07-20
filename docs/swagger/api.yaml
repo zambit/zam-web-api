@@ -240,6 +240,182 @@ paths:
             Internal server error
           schema:
             $ref: "#/definitions/Error"
+  
+  /auth/recovery/start:
+    post:
+      summary: Start user password recovery by sending verification code via SMS.
+      description: This method is idempotent, so sequential call will result in re-dispatching of an SMS with verification code, but there is call limits per phone number.
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: User recovery request
+          schema:
+            type: object
+            properties:
+              phone:
+                type: string
+                format: phone_number
+                description: User phone
+            required:
+              - phone
+      responses:
+        200:
+          description: Ok, SMS with confirmation code has been sent
+          schema:
+            $ref: "#/definitions/BaseResponse"
+        400:
+          description: |
+            Possible error messages:
+              * Wrong parametres
+                - Description: parametres validation errors
+              * User not found
+                - Description: no user found with given phone
+              * Not so fast! Next code dispatch will be awaliable in %d seconds...
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: |
+            Internal server error
+  
+  /auth/recovery/verify:
+    post:
+      summary: Verifies user password recovery by passing SMS Code which has been sent previously
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: User password recovery verification request
+          schema:
+            type: object
+            properties:
+              phone:
+                type: string
+                format: phone_number
+                description: User phone
+              verification_code:
+                type: string
+                description: Verification code obtained by SMS
+            required:
+              - phone
+              - verification_code
+      responses:
+        200:
+          description: Ok, returned Token must be used for further password recovery
+          schema:
+            allOf:
+              - $ref: "#/definitions/BaseResponse"
+              - type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      recovery_token:
+                        type: string
+                        description: Recovery Token required by further "finish" request
+                    required:
+                      - token
+        400:
+          description: |
+            Possible error messages:
+              * Wrong parametres
+                - Description: parametres validation errors
+              * Such action not allowed
+                - Description: account already created or on another stage
+                - Hint: issue "start" again if you don't know what to do
+              * User not found
+                - Description: no user found with given phone
+              * Code is wrong
+                - Description: returned when either phone or code are invalid
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "code",
+                        "input": "body",
+                        "message": "code is wrong"
+                      }
+                    }
+                  ]
+                }
+                ```
+          schema:
+            $ref: "#/definitions/Error"
+        500:
+          description: |
+            Internal server error
+          schema:
+            $ref: "#/definitions/Error"
+  
+  /auth/recovery/finish:
+    put:
+      summary: Finish password recovery by setting user password, this request requires Recovery Token
+      parameters:
+        - in: body
+          name: body
+          required: true
+          description: User password recovery finish request
+          schema:
+            type: object
+            properties:
+              phone:
+                type: string
+                format: phone_number
+                description: User phone
+              recovery_token:
+                type: string
+                description: Recovery Token received in "verify" request
+              password:
+                type: string
+                format: password
+              password_confirmation:
+                type: string
+                format: password
+            required:
+              - phone
+              - recovery_token
+              - password
+              - password_confirmation
+      responses:
+        200:
+          description: Ok, refistration completed, user allowed to signin, also returns auth token
+          schema:
+            $ref: "#/definitions/UserTokenResponse"
+        400:
+          description: |
+            Possible error messages:
+              * Wrong parametres
+                - Description: parametres validation errors
+              * Such action not allowed
+                - Description: account already created or on another stage
+                - Hint: issue "start" again if you don't know what to do
+              * User not found
+                - Description: no user found with given phone
+              * Recovery Token is wrong
+                - Hint: in case of lost Recovery Token, issue start again
+                ```json
+                {
+                  "result": false,
+                  "errors": [
+                    {
+                      "message": "wrong parametres",
+                      "fields": {
+                        "name": "token",
+                        "input": "body",
+                        "message": "recovery_token is wrong"
+                      }
+                    }
+                  ]
+                }
+                ```
+        500:
+          description: |
+            Internal server error
+          schema:
+            $ref: "#/definitions/Error"
 
   /auth/signin:
     post:

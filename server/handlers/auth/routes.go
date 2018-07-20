@@ -5,6 +5,7 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth/dependencies"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth/signup"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
+	"gitlab.com/ZamzamTech/wallet-api/server/handlers/auth/recovery"
 )
 
 // Register creates and registers /auth routes with given dependencies
@@ -27,6 +28,9 @@ func Register(deps dependencies.Dependencies) gin.IRouter {
 
 	// register signup endpoints
 	signup.Register(group.Group("/signup"), deps)
+
+	// register recovery endpoints
+	recovery.Register(group.Group("/recovery"), deps)
 
 	return group
 }

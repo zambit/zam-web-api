@@ -294,5 +294,6 @@ func FinishHandlerFactory(
 		},
 		notifications.ActionRegistrationCompleted,
 		signupTokenKeyPatten,
+		"signup_token",
 	)
 }

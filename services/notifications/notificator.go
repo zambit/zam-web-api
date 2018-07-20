@@ -27,6 +27,13 @@ const (
 
 	// ActionRegistrationCompleted notify user about successful registration and request confirmation
 	ActionRegistrationCompleted = "action_registration_completed"
+
+	// ActionPasswordRecoveryRequested requires service to send password recovery confirmation
+	// This actions requires "phone" and "code" to be specified in data map
+	ActionPasswordRecoveryRequested = "action_recovery_confirmation_requested"
+
+	// ActionPasswordRecoveryCompleted notifies user about successful password change
+	ActionPasswordRecoveryCompleted = "action_recovery_confirmation_requested"
 )
 
 // ISender intends to perform all notification actions depending on user settings
