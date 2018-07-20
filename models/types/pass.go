@@ -1,11 +1,11 @@
 package types
 
 import (
-	"golang.org/x/crypto/bcrypt"
+	"database/sql/driver"
 	"fmt"
 	"github.com/pkg/errors"
+	"golang.org/x/crypto/bcrypt"
 	"reflect"
-	"database/sql/driver"
 )
 
 const defaultCost = 8

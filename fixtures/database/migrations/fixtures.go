@@ -1,16 +1,16 @@
 package migrations
 
 import (
-	"gitlab.com/ZamzamTech/wallet-api/fixtures"
+	"github.com/golang-migrate/migrate"
+	_ "github.com/golang-migrate/migrate/database/postgres"
+	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	dbconfig "gitlab.com/ZamzamTech/wallet-api/config/db"
-	"github.com/golang-migrate/migrate"
-	_ "github.com/golang-migrate/migrate/source/file"
-	_ "github.com/golang-migrate/migrate/database/postgres"
-	"runtime"
-	"path"
+	"gitlab.com/ZamzamTech/wallet-api/fixtures"
 	"os"
+	"path"
+	"runtime"
 )
 
 func newMigrate(uri string) (*migrate.Migrate, error) {
@@ -28,10 +28,10 @@ func newMigrate(uri string) (*migrate.Migrate, error) {
 		migrationsDir = path.Clean(path.Join(projectRoot, "db/migrations"))
 	}
 
-	return migrate.New("file://" + migrationsDir, uri)
+	return migrate.New("file://"+migrationsDir, uri)
 }
 
-func Init()  {
+func Init() {
 	var m *migrate.Migrate
 
 	fixtures.BeforeEachCInvoke(func(conf dbconfig.Scheme) (err error) {

@@ -78,7 +78,7 @@ var _ = Describe("testing commands", func() {
 			Expect(conf.Server.Host).To(Equal("localhost"))
 			Expect(conf.Server.Port).To(Equal(9999))
 			Expect(conf.Server.Auth.TokenName).To(Equal("Bearer"))
-			Expect(conf.Server.Auth.TokenExpire).To(Equal(time.Hour*24))
+			Expect(conf.Server.Auth.TokenExpire).To(Equal(time.Hour * 24))
 		})
 	})
 	Context("when reading from config", func() {

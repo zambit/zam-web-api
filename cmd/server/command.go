@@ -11,6 +11,7 @@ import (
 	"io"
 	"time"
 
+	"github.com/pkg/errors"
 	"gitlab.com/ZamzamTech/wallet-api/config"
 	serverconf "gitlab.com/ZamzamTech/wallet-api/config/server"
 	"gitlab.com/ZamzamTech/wallet-api/db"
@@ -24,9 +25,8 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
-	sessmem "gitlab.com/ZamzamTech/wallet-api/services/sessions/mem"
 	sessjwt "gitlab.com/ZamzamTech/wallet-api/services/sessions/jwt"
-	"github.com/pkg/errors"
+	sessmem "gitlab.com/ZamzamTech/wallet-api/services/sessions/mem"
 )
 
 // Create and initialize server command for given viper instance

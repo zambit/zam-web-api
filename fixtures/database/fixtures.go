@@ -1,11 +1,11 @@
 package database
 
 import (
-	"gitlab.com/ZamzamTech/wallet-api/fixtures"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	dbconfig "gitlab.com/ZamzamTech/wallet-api/config/db"
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
+	dbconfig "gitlab.com/ZamzamTech/wallet-api/config/db"
+	"gitlab.com/ZamzamTech/wallet-api/db"
+	"gitlab.com/ZamzamTech/wallet-api/fixtures"
 )
 
 // init provides database connection

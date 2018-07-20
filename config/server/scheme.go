@@ -7,7 +7,7 @@ import (
 // AuthScheme web-authorization related parameters
 type AuthScheme struct {
 	// TokenName specifies token prefix in Authorization header
-	TokenName   string
+	TokenName string
 
 	// TokenExpire authorization token live duration before become expire (example: 24h45m15s)
 	TokenExpire time.Duration
@@ -57,7 +57,7 @@ type Scheme struct {
 	Port int
 
 	// JWT specific configuration, there is no default values, so if token jwt like storage is used, this must be defined
-	JWT *struct{
+	JWT *struct {
 		Secret string
 		Method string
 	}

@@ -2,8 +2,8 @@ package notifications
 
 import (
 	"github.com/google/uuid"
-	"strings"
 	"math/rand"
+	"strings"
 )
 
 // IGenerator holds different auxiliary functions for generating purposes

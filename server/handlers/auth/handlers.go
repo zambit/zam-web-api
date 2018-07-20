@@ -2,13 +2,13 @@ package auth
 
 import (
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"gitlab.com/ZamzamTech/wallet-api/db"
 	"gitlab.com/ZamzamTech/wallet-api/models"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
+	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	"time"
-	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
-	"github.com/pkg/errors"
 )
 
 // SigninHandlerFactory returns handler which perform user authorization, requires session storage to store newly

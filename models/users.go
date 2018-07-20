@@ -12,8 +12,8 @@ type User struct {
 	Password types.Password
 
 	RegisteredAt *time.Time
-	CreatedAt time.Time
-	UpdatedAt time.Time
+	CreatedAt    time.Time
+	UpdatedAt    time.Time
 
 	ReferrerID    *int64
 	ReferrerPhone *string

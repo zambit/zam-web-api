@@ -36,7 +36,7 @@ const (
 	confirmCode  = "CONFIRMATIONCODE"
 	confirmCode2 = "222222222CONFIRMATIONCODE2222222222"
 	signUpToken  = "SIGNUPTOKENTOKENTOKEN"
-	signUpToken2  = "2222SIGNUPTOKENTOKENTOKEN222"
+	signUpToken2 = "2222SIGNUPTOKENTOKENTOKEN222"
 	authToken    = "AUTH TOKEN"
 )
 
@@ -381,15 +381,15 @@ var _ = Describe("Given user signup flow", func() {
 
 			ItD("should return ok because token is valid", func(d *db.Db, user models.User, handler base.HandlerFunc) {
 				val, _, err := handler(createSimpleContext(gin.H{
-					"phone": validPhone1,
-					"signup_token": signUpToken,
-					"password": pass1,
+					"phone":                 validPhone1,
+					"signup_token":          signUpToken,
+					"password":              pass1,
 					"password_confirmation": pass1,
 				}))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(val).To(BeEquivalentTo(struct {
 					Token string
-				} {
+				}{
 					Token: authToken,
 				}))
 
@@ -412,9 +412,9 @@ var _ = Describe("Given user signup flow", func() {
 
 			ItD("should return ok because token is valid", func(d *db.Db, user models.User, handler base.HandlerFunc) {
 				val, _, err := handler(createSimpleContext(gin.H{
-					"phone": validPhone1,
-					"signup_token": signUpToken2,
-					"password": pass1,
+					"phone":                 validPhone1,
+					"signup_token":          signUpToken2,
+					"password":              pass1,
 					"password_confirmation": pass1,
 				}))
 				Expect(err).To(Equal(base.NewErrorsView("").AddField(

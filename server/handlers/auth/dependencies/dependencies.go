@@ -1,13 +1,13 @@
 package dependencies
 
 import (
-	"go.uber.org/dig"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
 	"gitlab.com/ZamzamTech/wallet-api/config/server"
+	"gitlab.com/ZamzamTech/wallet-api/db"
+	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
+	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
+	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"go.uber.org/dig"
 )
 
 // Dependencies dependencies used by auth and signup endpoints

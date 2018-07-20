@@ -3,8 +3,8 @@ package base
 import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator"
-	"reflect"
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
+	"reflect"
 	"strings"
 )
 
@@ -31,7 +31,6 @@ func init() {
 	// bind
 	binding.Validator = v
 }
-
 
 func initValidator(v *validator.Validate) {
 	// init custom validators
@@ -64,7 +63,7 @@ func initValidator(v *validator.Validate) {
 	v.RegisterTagNameFunc(func(field reflect.StructField) string {
 		// lookup json tag
 		jsonTag, ok := field.Tag.Lookup("json")
-		if ok && len(jsonTag) > 0{
+		if ok && len(jsonTag) > 0 {
 			// in case where tag defined as `json:"field_name,..."`
 			if idx := strings.Index(jsonTag, ","); idx != -1 && len(jsonTag[:idx]) > 0 {
 				return jsonTag[:idx]

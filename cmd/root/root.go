@@ -1,12 +1,12 @@
 package root
 
 import (
+	"encoding/json"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"gitlab.com/ZamzamTech/wallet-api/config"
-	"strings"
-	"encoding/json"
 	"os"
+	"strings"
 )
 
 // Create and initialize root command for given viper instance

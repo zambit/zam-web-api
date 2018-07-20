@@ -1,15 +1,15 @@
 package models
 
 import (
+	"fmt"
 	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
 	"gitlab.com/ZamzamTech/wallet-api/db"
 	. "gitlab.com/ZamzamTech/wallet-api/fixtures"
 	"gitlab.com/ZamzamTech/wallet-api/fixtures/database"
 	"gitlab.com/ZamzamTech/wallet-api/fixtures/database/migrations"
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
-	"fmt"
 )
 
 const (
@@ -118,25 +118,25 @@ var _ = Describe("user related queries", func() {
 				[]table.TableEntry{
 					{
 						Description: "should be failed because no such referrer",
-						Parameters: []interface{} {
+						Parameters: []interface{}{
 							validPhone5, ErrReferrerNotFound,
 						},
 					},
 					{
 						Description: "should be failed because referrer not in active state",
-						Parameters: []interface{} {
+						Parameters: []interface{}{
 							validPhone6, ErrReferrerNotFound,
 						},
 					},
 					{
 						Description: "should be failed because invalid referrer phone",
-						Parameters: []interface{} {
+						Parameters: []interface{}{
 							invalidPhone, ErrReferrerNotFound,
 						},
 					},
 					{
 						Description: "should be ok",
-						Parameters: []interface{} {
+						Parameters: []interface{}{
 							validPhone2, nil,
 						},
 					},

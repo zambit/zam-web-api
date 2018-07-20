@@ -1,14 +1,14 @@
 package fixtures
 
 import (
-	"go.uber.org/dig"
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"gitlab.com/ZamzamTech/wallet-api/config"
 	dbconfig "gitlab.com/ZamzamTech/wallet-api/config/db"
 	servconf "gitlab.com/ZamzamTech/wallet-api/config/server"
-	"time"
+	"go.uber.org/dig"
 	"os"
+	"time"
 )
 
 // Container global and used by test suites to fetch dependencies, available only inside test scope

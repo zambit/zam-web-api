@@ -2,11 +2,11 @@ package models
 
 import (
 	"database/sql"
+	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"gitlab.com/ZamzamTech/wallet-api/db"
 	"gitlab.com/ZamzamTech/wallet-api/models/types"
 	"strconv"
-	"github.com/lib/pq"
 )
 
 var (
@@ -82,7 +82,7 @@ func CreateUser(tx db.ITx, user User) (newUser User, err error) {
 	if user.ReferrerPhone != nil {
 		refPhone, err = types.NewPhone(*user.ReferrerPhone)
 		if err != nil {
-			err =  ErrReferrerNotFound
+			err = ErrReferrerNotFound
 			return
 		}
 	}
@@ -109,7 +109,7 @@ func CreateUser(tx db.ITx, user User) (newUser User, err error) {
 			WHERE 
 				u.phone = $7 and 
 				us.name = $8` + insertAppend
-		queryArgs = []interface{} {
+		queryArgs = []interface{}{
 			user.Status,
 			user.Phone,
 			user.Password,
@@ -121,7 +121,7 @@ func CreateUser(tx db.ITx, user User) (newUser User, err error) {
 		}
 	} else {
 		query = insertStart + `VALUES ($2, $3, $4, $5, $6, $7, ` + selectStatus + `) ` + insertAppend
-		queryArgs = []interface{} {
+		queryArgs = []interface{}{
 			user.Status, user.Phone, user.Password, user.CreatedAt, user.RegisteredAt, user.UpdatedAt, nil,
 		}
 	}
@@ -159,7 +159,7 @@ func UpdateUser(tx db.ITx, user User) (err error) {
 			updated_at = $5,
 			status_id = $6
         WHERE id = $7`,
-        user.Phone, user.Password, user.RegisteredAt, user.CreatedAt, user.UpdatedAt, statusID, user.ID,
+		user.Phone, user.Password, user.RegisteredAt, user.CreatedAt, user.UpdatedAt, statusID, user.ID,
 	)
 	if err != nil {
 		return

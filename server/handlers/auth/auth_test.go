@@ -7,8 +7,8 @@ import (
 	_ "gitlab.com/ZamzamTech/wallet-api/server/handlers"
 	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	notifmocks "gitlab.com/ZamzamTech/wallet-api/services/notifications/mocks"
+	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	sessmocks "gitlab.com/ZamzamTech/wallet-api/services/sessions/mocks"
 
 	. "gitlab.com/ZamzamTech/wallet-api/fixtures"
@@ -36,6 +36,7 @@ const (
 )
 
 const tokenName = "TestBearer"
+
 var mockedToken = sessions.Token("TOKENTOKENTOKEN")
 var mockedToken2 = sessions.Token("ToKToKToKToKToKToKToKToK")
 
@@ -63,7 +64,7 @@ func CreateContext(method, url string, body interface{}) *gin.Context {
 
 func CreateContextWA(method, url string, body interface{}, tokenName, token string) *gin.Context {
 	c := CreateContext(method, url, body)
-	c.Request.Header.Add("Authorization", tokenName + " " + token)
+	c.Request.Header.Add("Authorization", tokenName+" "+token)
 	return c
 }
 

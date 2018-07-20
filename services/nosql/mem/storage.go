@@ -1,10 +1,10 @@
 package mem
 
 import (
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
-	"time"
-	"sync"
 	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
+	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"sync"
+	"time"
 )
 
 type valWithExpire struct {

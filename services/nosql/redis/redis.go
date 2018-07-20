@@ -1,11 +1,11 @@
 package redis
 
 import (
-	"time"
 	"github.com/go-redis/redis"
 	"github.com/segmentio/objconv/json"
 	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
 	"io"
+	"time"
 )
 
 // New creates nosql.IStorage wrapper

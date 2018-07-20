@@ -27,7 +27,7 @@ func Init(v *viper.Viper) {
 	v.SetDefault("Server.Port", 9999)
 	v.SetDefault("Server.Auth.TokenExpire", time.Hour*24)
 	v.SetDefault("Server.Auth.TokenName", "Bearer")
-	v.SetDefault("Server.Auth.SignUpTokenExpire", time.Hour * 24)
+	v.SetDefault("Server.Auth.SignUpTokenExpire", time.Hour*24)
 	v.SetDefault("Server.Auth.SignUpRetryDelay", time.Minute)
 	v.SetDefault("Server.Storage.URI", "mem://")
 	v.SetDefault("Server.Generator.CodeLen", 6)

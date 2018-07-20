@@ -3,10 +3,10 @@ package middlewares
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	"net/http"
 	"strings"
-	"github.com/pkg/errors"
 )
 
 // AuthMiddlewareFactory creates auth middleware using session validation via given storage

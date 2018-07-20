@@ -1,15 +1,15 @@
 package base
 
 import (
-	"testing"
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
-	"github.com/onsi/ginkgo/extensions/table"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
-	"net/http"
+	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
 	"github.com/pkg/errors"
 	"io"
+	"net/http"
+	"testing"
 )
 
 func TestBaseHandlers(t *testing.T) {
@@ -19,10 +19,10 @@ func TestBaseHandlers(t *testing.T) {
 
 var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorView", func() {
 	type exampleParam struct {
-		Param1 string `validate:"required" json:"param1"`
-		Param2 string `validate:"min=5" json:"param2"`
-		Param3 string `json:"param3"`
-		Param4 string `validate:"eqfield=Param3" json:"param4"`
+		Param1      string `validate:"required" json:"param1"`
+		Param2      string `validate:"min=5" json:"param2"`
+		Param3      string `json:"param3"`
+		Param4      string `validate:"eqfield=Param3" json:"param4"`
 		ComplexName string `validate:"required" json:"complexName"`
 	}
 
@@ -31,10 +31,10 @@ var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorVi
 	Context("when all params are invalid", func() {
 		It("should coerce appropriate", func() {
 			err := v.Struct(&exampleParam{
-				Param1: "",
-				Param2: "1234",
-				Param3: "example",
-				Param4: "miss_example",
+				Param1:      "",
+				Param2:      "1234",
+				Param3:      "example",
+				Param4:      "miss_example",
 				ComplexName: "",
 			})
 			Expect(err).To(HaveOccurred())
@@ -47,23 +47,23 @@ var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorVi
 					},
 					Fields: []FieldErrorDescr{
 						{
-							Input: "body",
-							Name: "param1",
+							Input:   "body",
+							Name:    "param1",
 							Message: "field is required",
 						},
 						{
-							Input: "body",
-							Name: "param2",
+							Input:   "body",
+							Name:    "param2",
 							Message: "field value must be at least 5 items long",
 						},
 						{
-							Input: "body",
-							Name: "param4",
+							Input:   "body",
+							Name:    "param4",
 							Message: `this field must be equal to "param3"`,
 						},
 						{
-							Input: "body",
-							Name: "complexName",
+							Input:   "body",
+							Name:    "complexName",
 							Message: "field is required",
 						},
 					},

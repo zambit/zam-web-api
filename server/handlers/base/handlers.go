@@ -3,8 +3,8 @@ package base
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
-	"net/http"
 	"io"
+	"net/http"
 )
 
 // HandlerFunc specific project-wide handler function, must return nil or object which will be json-serialized,

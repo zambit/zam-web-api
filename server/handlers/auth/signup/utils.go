@@ -1,16 +1,16 @@
 package signup
 
 import (
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
-	"time"
 	"fmt"
-	"gitlab.com/ZamzamTech/wallet-api/models"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
-	"net/http"
 	"github.com/go-playground/validator"
 	"gitlab.com/ZamzamTech/wallet-api/db"
+	"gitlab.com/ZamzamTech/wallet-api/models"
+	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
+	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
+	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
+	"net/http"
+	"time"
 )
 
 // sendUserConfirmationCode
@@ -62,7 +62,7 @@ func ShouldBindJSON(c *gin.Context, to interface{}) (base.FieldsErrorView, error
 		return base.FieldsErrorView{
 			ErrorView: base.ErrorView{
 				Message: err.Error(),
-				Code: http.StatusBadRequest,
+				Code:    http.StatusBadRequest,
 			},
 		}, err
 	}
