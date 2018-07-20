@@ -8,8 +8,8 @@ server:
         uri: '$STAGING_REDIS_URI'
     auth:
         tokenstorage: jwtpersistent
-        generator:
-            codealphabet: 4
-        jwt:
-            secret: '$STAGING_SECRET'
-            method: HS256'
+    generator:
+        codealphabet: 4
+    jwt:
+        secret: '$STAGING_SECRET'
+        method: HS256'
