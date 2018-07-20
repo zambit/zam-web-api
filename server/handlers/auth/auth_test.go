@@ -22,7 +22,6 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/models"
 	"net/http"
 	"time"
-	"gitlab.com/ZamzamTech/wallet-api/models/types"
 )
 
 const (
@@ -132,7 +131,7 @@ var _ = Describe("Given the auth api", func() {
 					Expect(len(sessStore.Calls[0].Arguments)).To(Equal(2))
 
 					sessPayload := sessStore.Calls[0].Arguments[0]
-					Expect(sessPayload).To(HaveKeyWithValue("phone", types.Phone(validPhone1)))
+					Expect(sessPayload).To(HaveKeyWithValue("phone", validPhone1))
 				})
 			})
 
@@ -208,10 +207,10 @@ var _ = Describe("Given the auth api", func() {
 
 	Context("when querying refresh token request", func() {
 		BeforeEachCProvide(func(sessStore sessions.IStorage) base.HandlerFunc {
-			return RefreshTokenHandlerFactory(sessStore, tokenName)
+			return RefreshTokenHandlerFactory(sessStore, tokenName, authExpire)
 		})
 		BeforeEachCInvoke(func(sessStore *sessmocks.IStorage) {
-			sessStore.On("RefreshToken", sessions.Token(mockedToken)).Return(mockedToken2, nil)
+			sessStore.On("RefreshToken", sessions.Token(mockedToken), authExpire).Return(mockedToken2, nil)
 		})
 
 		Context("when token is stored", func() {
@@ -233,7 +232,7 @@ var _ = Describe("Given the auth api", func() {
 		ItD("should return phone attached to the session", func(handler base.HandlerFunc) {
 			c := CreateContext("GET", "check", nil)
 			c.Set("user_data", map[string]interface{}{
-				"phone": types.Phone(validPhone1),
+				"phone": validPhone1,
 			})
 			data, _, err := handler(c)
 			Expect(err).NotTo(HaveOccurred())

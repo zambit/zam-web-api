@@ -59,7 +59,7 @@ var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorVi
 						{
 							Input: "body",
 							Name: "param4",
-							Message: "this field must be equal to param3",
+							Message: `this field must be equal to "param3"`,
 						},
 						{
 							Input: "body",

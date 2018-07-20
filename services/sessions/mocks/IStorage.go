@@ -25,15 +25,15 @@ func (_m *IStorage) Delete(toke sessions.Token) error {
 }
 
 // Get provides a mock function with given fields: token
-func (_m *IStorage) Get(token sessions.Token) (interface{}, error) {
+func (_m *IStorage) Get(token sessions.Token) (map[string]interface{}, error) {
 	ret := _m.Called(token)
 
-	var r0 interface{}
-	if rf, ok := ret.Get(0).(func(sessions.Token) interface{}); ok {
+	var r0 map[string]interface{}
+	if rf, ok := ret.Get(0).(func(sessions.Token) map[string]interface{}); ok {
 		r0 = rf(token)
 	} else {
 		if ret.Get(0) != nil {
-			r0 = ret.Get(0).(interface{})
+			r0 = ret.Get(0).(map[string]interface{})
 		}
 	}
 
@@ -48,11 +48,11 @@ func (_m *IStorage) Get(token sessions.Token) (interface{}, error) {
 }
 
 // New provides a mock function with given fields: data, expireAfter
-func (_m *IStorage) New(data interface{}, expireAfter time.Duration) (sessions.Token, error) {
+func (_m *IStorage) New(data map[string]interface{}, expireAfter time.Duration) (sessions.Token, error) {
 	ret := _m.Called(data, expireAfter)
 
 	var r0 sessions.Token
-	if rf, ok := ret.Get(0).(func(interface{}, time.Duration) sessions.Token); ok {
+	if rf, ok := ret.Get(0).(func(map[string]interface{}, time.Duration) sessions.Token); ok {
 		r0 = rf(data, expireAfter)
 	} else {
 		if ret.Get(0) != nil {
@@ -61,7 +61,7 @@ func (_m *IStorage) New(data interface{}, expireAfter time.Duration) (sessions.T
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(interface{}, time.Duration) error); ok {
+	if rf, ok := ret.Get(1).(func(map[string]interface{}, time.Duration) error); ok {
 		r1 = rf(data, expireAfter)
 	} else {
 		r1 = ret.Error(1)
@@ -70,13 +70,13 @@ func (_m *IStorage) New(data interface{}, expireAfter time.Duration) (sessions.T
 	return r0, r1
 }
 
-// RefreshToken provides a mock function with given fields: oldToken
-func (_m *IStorage) RefreshToken(oldToken sessions.Token) (sessions.Token, error) {
-	ret := _m.Called(oldToken)
+// RefreshToken provides a mock function with given fields: oldToken, expireAfter
+func (_m *IStorage) RefreshToken(oldToken sessions.Token, expireAfter time.Duration) (sessions.Token, error) {
+	ret := _m.Called(oldToken, expireAfter)
 
 	var r0 sessions.Token
-	if rf, ok := ret.Get(0).(func(sessions.Token) sessions.Token); ok {
-		r0 = rf(oldToken)
+	if rf, ok := ret.Get(0).(func(sessions.Token, time.Duration) sessions.Token); ok {
+		r0 = rf(oldToken, expireAfter)
 	} else {
 		if ret.Get(0) != nil {
 			r0 = ret.Get(0).(sessions.Token)
@@ -84,8 +84,8 @@ func (_m *IStorage) RefreshToken(oldToken sessions.Token) (sessions.Token, error
 	}
 
 	var r1 error
-	if rf, ok := ret.Get(1).(func(sessions.Token) error); ok {
-		r1 = rf(oldToken)
+	if rf, ok := ret.Get(1).(func(sessions.Token, time.Duration) error); ok {
+		r1 = rf(oldToken, expireAfter)
 	} else {
 		r1 = ret.Error(1)
 	}
