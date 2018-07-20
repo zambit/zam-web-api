@@ -43,6 +43,9 @@ build:
     # copy migrations
     - mkdir $BUILD_OUT_DIR/migrations
     - cp db/migrations/* $BUILD_OUT_DIR/migrations
+
+    # copy config generator
+    - cp config_generator.sh $BUILD_OUT_DIR
   tags:
     - build_srv
   artifacts:
@@ -114,11 +117,12 @@ deploy_on_staging:
     # remove outdated binary and copy new one
     - rm -f $STAGING_DEPLOY_DIR/web-api
     - cp build/web-api $STAGING_DEPLOY_DIR
+    - cp build/config_generator.sh $STAGING_DEPLOY_DIR
     - cp -r build/migrations $STAGING_DEPLOY_DIR
 
     # generate config
     - cd $STAGING_DEPLOY_DIR
-    - "echo '{\"env\": \"staging\", \"server\": {\"generator\": {\"codealphabet\": \"4\"}}, \"db\": {\"uri\": \"'$STAGING_DB_URI'\"}}' > conf.json"
+    - bash config_generator.sh > conf.yaml
 
     # trigger systemd to restart service by softly killing old instance
     - killall -1 web-api
