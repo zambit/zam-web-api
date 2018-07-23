@@ -97,7 +97,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 			if conf.Auth.TokenStorage == "jwtpersistent" {
 				res = sessjwt.WithStorage(
 					res, persistentStorage, func(data map[string]interface{}, token string) string {
-						return fmt.Sprintf("sessions:%v:jwt:token_id:%s", data["phone"], token)
+						return fmt.Sprintf("user:%v:sessions", data["phone"])
 					},
 				)
 			}

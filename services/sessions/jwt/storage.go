@@ -78,7 +78,8 @@ func (s *jwtStorage) New(data map[string]interface{}, expireAfter time.Duration)
 	if s.persistentStorage != nil {
 		tokenID := uuid.New().String()
 		claims[tokenPersisIDKey] = tokenID
-		err := s.persistentStorage.SetWithExpire(s.storageKeyFunc(data, tokenID), tokenID, expireAfter)
+
+		err := s.persistentStorage.StrSet(s.storageKeyFunc(data, tokenID)).AddExpire(tokenID, expireAfter)
 		if err != nil {
 			return sessions.Token{}, err
 		}
@@ -108,16 +109,15 @@ func (s *jwtStorage) Get(token sessions.Token) (data map[string]interface{}, err
 
 	// if token storage defined, check token
 	if s.persistentStorage != nil {
-		tokenID, err := extractTokenIDFRomClaims(claims)
+		tokenID, err := extractTokenIDFromClaims(claims)
 		if err != nil {
 			return nil, err
 		}
 
 		// lookup token
-		if _, err = s.persistentStorage.Get(s.storageKeyFunc(claims, tokenID)); err != nil {
-			if err == nosql.ErrNoSuchKeyFound {
-				err = sessions.ErrNotFound
-			}
+		exists, err := s.persistentStorage.StrSet(s.storageKeyFunc(claims, tokenID)).Check(tokenID)
+		if !exists || err == nosql.ErrNoSuchKeyFound {
+			return nil, sessions.ErrNotFound
 		}
 		if err != nil {
 			return nil, err
@@ -142,6 +142,10 @@ func (s *jwtStorage) RefreshToken(oldToken sessions.Token, expireAfter time.Dura
 	if err != nil {
 		return sessions.Token{}, err
 	}
+	err = s.Delete(oldToken)
+	if err != nil {
+		return sessions.Token{}, err
+	}
 	return s.New(data, expireAfter)
 }
 
@@ -160,13 +164,13 @@ func (s *jwtStorage) Delete(token sessions.Token) error {
 	}
 
 	// extract token id
-	tokenID, err := extractTokenIDFRomClaims(claims)
+	tokenID, err := extractTokenIDFromClaims(claims)
 	if err != nil {
 		return err
 	}
 
 	// remove it from tokens storage
-	err = s.persistentStorage.Delete(s.storageKeyFunc(claims, tokenID))
+	err = s.persistentStorage.StrSet(s.storageKeyFunc(claims, tokenID)).Remove(tokenID)
 	if err == nosql.ErrNoSuchKeyFound {
 		return sessions.ErrNotFound
 	}
@@ -197,7 +201,7 @@ func extractTimestampFromClaims(claims jwt.MapClaims, key string) (int64, error)
 	return 0, sessions.ErrUnexpectedToken
 }
 
-func extractTokenIDFRomClaims(claims jwt.MapClaims) (tokenID string, err error) {
+func extractTokenIDFromClaims(claims jwt.MapClaims) (tokenID string, err error) {
 	// validate payload token id
 	if tokenIDRaw, ok := claims[tokenPersisIDKey]; ok {
 		tokenID, ok = tokenIDRaw.(string)

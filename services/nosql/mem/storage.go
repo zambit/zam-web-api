@@ -19,6 +19,17 @@ type memStorage struct {
 	values map[string]valWithExpire
 }
 
+// memSet implements IStrSet interface
+type memSet struct {
+	guard sync.RWMutex
+	set   strWithExpireSet
+}
+
+type strWithExpireSet map[string]time.Time
+
+type notASet struct {}
+
+
 // New returns new in-memory storage
 func New() nosql.IStorage {
 	return &memStorage{
@@ -87,4 +98,92 @@ func (s *memStorage) Delete(key string) (err error) {
 		createdAt: time.Now(),
 	}
 	return
+}
+
+func (s *memStorage) StrSet(key string) nosql.IStrSet {
+	var set *memSet
+	setRaw, err := s.Get(key)
+	if err == nosql.ErrNoSuchKeyFound {
+		set = &memSet{set: make(map[string]time.Time)}
+		s.Set(key, set)
+	} else {
+		var ok bool
+		set, ok = setRaw.(*memSet)
+		if !ok {
+			return notASet{}
+		}
+	}
+	return set
+}
+
+func (set *memSet) Add(val string) error {
+	set.guard.Lock()
+	defer set.guard.Unlock()
+
+	set.set[val] = time.Time{}
+	return nil
+}
+
+func (set *memSet) AddExpire(val string, ttl time.Duration) error {
+	set.guard.Lock()
+	defer set.guard.Unlock()
+
+	set.set[val] = time.Now().UTC().Add(ttl)
+	return nil
+}
+
+func (set *memSet) Remove(val string) error {
+	set.guard.Lock()
+	defer set.guard.Unlock()
+
+	delete(set.set, val)
+
+	return nil
+}
+
+func (set *memSet) Check(val string) (bool, error) {
+	set.guard.RLock()
+	defer set.guard.RUnlock()
+
+	elem, ok := set.set[val]
+	if !ok {
+		return false, nil
+	}
+
+	if elem.Before(time.Now().UTC()) {
+		return false, nil
+	}
+
+	return true, nil
+}
+
+func (set *memSet) List() ([]string, error) {
+	set.guard.RLock()
+	defer set.guard.RUnlock()
+
+	elements := make([]string, 0, len(set.set))
+	for e := range set.set {
+		elements = append(elements, e)
+	}
+	return elements, nil
+}
+
+func (notASet) Add(val string) error {
+	return nosql.ErrNotStrSet
+}
+
+func (notASet) AddExpire(val string, ttl time.Duration) error {
+	return nosql.ErrNotStrSet
+}
+
+func (notASet) Remove(val string) error {
+	return nosql.ErrNotStrSet
+}
+
+func (notASet) Check(val string) (bool, error) {
+	return false, nosql.ErrNotStrSet
+}
+
+func (notASet) List() ([]string, error) {
+	return nil, nosql.ErrNotStrSet
 }
