@@ -8,9 +8,7 @@ server:
         uri: '$STAGING_REDIS_URI'
     auth:
         tokenstorage: jwtpersistent
-    generator:
-        codealphabet: 4
     jwt:
         secret: '$STAGING_SECRET'
-        method: HS256'
-    notificatorurl: '$NOTIFICATIONS_URL'
+        method: HS256
+    notificatorurl: '$NOTIFICATIONS_URL
