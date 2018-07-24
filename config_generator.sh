@@ -13,3 +13,4 @@ server:
     jwt:
         secret: '$STAGING_SECRET'
         method: HS256'
+    notificatorurl: '$NOTIFICATIONS_URL'

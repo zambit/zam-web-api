@@ -101,7 +101,7 @@ func StartHandlerFactory(
 		},
 		storageExpire,
 		verificationCodeKeyPattern,
-		notifications.ActionPasswordRecoveryRequested,
+		notifications.ActionPasswordRecoveryConfirmationRequested,
 		tokenKeyPattern,
 	)
 }

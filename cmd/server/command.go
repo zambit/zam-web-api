@@ -23,6 +23,7 @@ import (
 	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
 	nosqlfactory "gitlab.com/ZamzamTech/wallet-api/services/nosql/factory"
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
+	stextfactory "gitlab.com/ZamzamTech/wallet-api/services/notifications/stext/factory"
 	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stub"
 	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
 	sessjwt "gitlab.com/ZamzamTech/wallet-api/services/sessions/jwt"
@@ -129,7 +130,13 @@ func serverMain(cfg config.RootScheme) (err error) {
 	}
 
 	// provide notificator
-	err = c.Provide(stub.New)
+	err = c.Provide(func(conf serverconf.Scheme, logger logrus.FieldLogger) notifications.ISender {
+		if conf.NotificatorURL == "" {
+			return stub.New(logger)
+		} else {
+			return stextfactory.New(conf.NotificatorURL)
+		}
+	})
 	if err != nil {
 		return
 	}

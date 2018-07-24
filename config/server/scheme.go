@@ -70,4 +70,9 @@ type Scheme struct {
 
 	// Generator
 	Generator GeneratorScheme
+
+	// NotificatorURL specifies notificator URI which is used to determine actual implementation.
+	//
+	// Allows slack hook url.
+	NotificatorURL string
 }
