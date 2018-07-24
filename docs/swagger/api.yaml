@@ -5,7 +5,7 @@ info:
   description: "Test"
   version: "0.0.1"
   
-host: "zam.me"
+host: "znt03"
 basePath: "/api/v1"
 schemes:
   - "https"
@@ -14,6 +14,13 @@ consumes:
   - application/json
 produces:
   - application/json
+
+securityDefinitions:
+  Bearer:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: Requires "Bearer" prefix
 
 paths:
   /auth/signup/start:
@@ -438,6 +445,8 @@ paths:
             $ref: "#/definitions/Error"
   /auth/signout:
     delete:
+      security:
+        - Bearer: []
       summary: Invalidates user's current authorization session
       responses:
         200:
@@ -450,6 +459,8 @@ paths:
             $ref: "#/definitions/Error"
   /auth/check:
     get:
+      security:
+        - Bearer: []
       summary: Checks if user authorized, returns his phone on success
       responses:
         200:
@@ -463,6 +474,8 @@ paths:
 
   /auth/confirmation/{link}:
     post:
+      security:
+        - Bearer: []
       summary: Confirm user phone
       parameters:
         - in: path
@@ -482,6 +495,8 @@ paths:
           
   /auth/receive/{link}:
     post:
+      security:
+        - Bearer: []
       summary: Create new user from pending transaction
       parameters:
         - in: path
@@ -501,6 +516,8 @@ paths:
 
   /user/me:
     get:
+      security:
+        - Bearer: []
       summary: Get specified user info
       responses:
         200:
@@ -514,6 +531,8 @@ paths:
         
   /user/me/verify:
     post:
+      security:
+        - Bearer: []
       summary: Create user KYC request
       parameters:
         - in: body
@@ -532,6 +551,8 @@ paths:
           schema:
             $ref: "#/definitions/Error"
     get:
+      security:
+        - Bearer: []
       summary: Get user KYC request info
       responses:
         200:
@@ -545,6 +566,8 @@ paths:
 
   /user/me/refferals:
     get:
+      security:
+        - Bearer: []
       summary: Get list of user refferals
       responses:
         200:
@@ -560,6 +583,8 @@ paths:
   
   /user/me/wallets:
     post:
+      security:
+        - Bearer: []
       summary: Create new user wallet for given coin
       parameters:
         - in: body
@@ -578,6 +603,8 @@ paths:
           schema:
             $ref: "#/definitions/Error"
     get:
+      security:
+        - Bearer: []
       summary: Get all user wallets
       parameters:
         - in: query
@@ -618,6 +645,8 @@ paths:
         type: string
         description: Wallet ID
     get:
+      security:
+        - Bearer: []
       summary: Request user wallet info by wallet id
       responses:
         200:
@@ -631,6 +660,8 @@ paths:
 
   /user/me/txs:
     get:
+      security:
+        - Bearer: []
       summary: Get all transactions or use filters
       parameters:
         - in: query
@@ -676,6 +707,8 @@ paths:
           schema:
             $ref: "#/definitions/Error"
     post:
+      security:
+        - Bearer: []
       summary: Send transaction
       parameters:
         - in: body
@@ -697,6 +730,8 @@ paths:
         type: string
         description: Transaction ID
     get:
+      security:
+        - Bearer: []
       summary: Get transaction for specified ID
       responses:
         200:
