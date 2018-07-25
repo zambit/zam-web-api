@@ -79,6 +79,42 @@ server:
     tokenname: Bearer
     # Authorization token live duration before become expire (example: 24h45m15s)
     tokenexpire: 24h0m0s
+
+    # TokenType describes token storage type.
+    # Possible values:
+    #  mem - inmemory token storage
+    #  jwt - jwt token storage
+    #  jwtpersisten - jwt token storage which uses persistent storage for token validation
+    tokenstorage: mem
+  
+  storage:
+    # URI used to connect to the storage.
+    # Possible schemes:
+    #  mem:// - in-memory storage
+    #  redis:// or rediss:// - redis storage, also supports redis cluster passing hosts slitted by comma
+    uri: mem://
+
+  generator:
+    # Specifies the alphabet used to generate verification codes
+    codealphabet: 0123456789
+
+    # Specifies the length of generated verification codes
+    codelen: 6
+
+  # JWT specific configuration, there is no default values, so if token jwt like storage is used, this must be defined
+  jwt:
+    # secret key used to sign token
+    secret: secretsecretsecret
+    # method of token signing
+    method: HS256
+
+  notificationsurl:
+    # NotificatorURL specifies notificator URI which is used to determine actual implementation.
+    # Possible schemes:
+    # 	 https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone} - using twilio sms service
+    #   https://hooks.slack.com/services/{hook_part} - "https://hooks.slack.com/services/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"
+    #   file://{path_to_file} - using file to log all notifications records. File will be created, if not exists.
+    # Make sure you have enough rights!
 ```
 
 ## Running
@@ -115,8 +151,8 @@ Currently **Wallet-Web-Api** exports such endpoints
 * `POST   /api/v1/auth/signup/start`
 * `POST   /api/v1/auth/signup/verify`
 * `PUT    /api/v1/auth/signup/finish`
-* `POST   /api/v1/auth/recovery/finish`
-* `POST   /api/v1/auth/recovery/finish`
+* `POST   /api/v1/auth/recovery/start`
+* `POST   /api/v1/auth/recovery/verify`
 * `PUT    /api/v1/auth/recovery/finish`
 * `POST   /api/v1/auth/signin`
 * `DELETE /api/v1/auth/signout`

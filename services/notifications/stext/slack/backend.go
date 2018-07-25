@@ -19,6 +19,7 @@ type backend struct {
 	hookUrl string
 }
 
+// New creates Slack backend using slack "Incoming WebHooks"
 func New(hookUrl string) *backend {
 	return &backend{hookUrl: hookUrl}
 }

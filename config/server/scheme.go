@@ -73,6 +73,13 @@ type Scheme struct {
 
 	// NotificatorURL specifies notificator URI which is used to determine actual implementation.
 	//
-	// Allows slack hook url.
+	// Possible schemes (empty value will cause to simply log records using log configuration):
+	//
+	// 	 https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone} - using twilio sms service
+	//
+	//   https://hooks.slack.com/services/{hook_part} - using slack "https://hooks.slack.com/services/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"
+	//
+	//   file://{path_to_file} - using file to log all notifications records. File will be created, if not exists.
+	// Make sure you have enough rights!
 	NotificatorURL string
 }
