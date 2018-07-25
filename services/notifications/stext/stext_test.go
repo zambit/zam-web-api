@@ -4,8 +4,8 @@ import (
 	"testing"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stext/mocks"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext/mocks"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
 )
 
 func TestSimpleTextNotificator(t *testing.T) {

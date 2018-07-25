@@ -4,8 +4,8 @@ import (
 	"database/sql"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	"gitlab.com/ZamzamTech/wallet-api/models/types"
+	"git.zam.io/wallet-backend/web-api/db"
+	"git.zam.io/wallet-backend/web-api/models/types"
 	"strconv"
 )
 

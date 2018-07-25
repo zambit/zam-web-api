@@ -3,7 +3,7 @@ package base
 import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator"
-	"gitlab.com/ZamzamTech/wallet-api/models/types"
+	"git.zam.io/wallet-backend/web-api/models/types"
 	"reflect"
 	"strings"
 )

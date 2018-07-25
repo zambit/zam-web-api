@@ -2,8 +2,8 @@ package config
 
 import (
 	"github.com/spf13/viper"
-	"gitlab.com/ZamzamTech/wallet-api/config/db"
-	"gitlab.com/ZamzamTech/wallet-api/config/server"
+	"git.zam.io/wallet-backend/web-api/config/db"
+	"git.zam.io/wallet-backend/web-api/config/server"
 	"time"
 )
 

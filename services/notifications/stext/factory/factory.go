@@ -2,13 +2,13 @@ package factory
 
 import (
 	"fmt"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stext"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stext/file"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stext/slack"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext/file"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext/slack"
 	"net/url"
 	"strings"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stext/twilio"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext/twilio"
 )
 
 // New creates backend guessing concrete type from URI, panic if guess is failed

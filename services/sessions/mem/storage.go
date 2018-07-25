@@ -3,7 +3,7 @@ package mem
 import (
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"sync"
 	"time"
 )

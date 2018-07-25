@@ -7,8 +7,7 @@ stages:
 build:
   stage: build
   variables:
-      # GO_PROJECT_PATH: git.zam.io/wallet-backend/web-api
-      GO_PROJECT_PATH: gitlab.com/ZamzamTech/wallet-api
+      GO_PROJECT_PATH: git.zam.io/wallet-backend/web-api
       GOROOT: /usr/lib/go-1.10/
   script:
     # prepare go-env

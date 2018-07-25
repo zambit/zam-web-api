@@ -2,7 +2,7 @@ package file
 
 import (
 	"os"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications/stext"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext"
 	"bytes"
 	"time"
 )

@@ -3,7 +3,7 @@ package redis
 import (
 	"github.com/go-redis/redis"
 	"github.com/segmentio/objconv/json"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
+	"git.zam.io/wallet-backend/web-api/services/nosql"
 	"io"
 	"time"
 	"strings"

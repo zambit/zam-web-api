@@ -3,9 +3,9 @@ package fixtures
 import (
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"gitlab.com/ZamzamTech/wallet-api/config"
-	dbconfig "gitlab.com/ZamzamTech/wallet-api/config/db"
-	servconf "gitlab.com/ZamzamTech/wallet-api/config/server"
+	"git.zam.io/wallet-backend/web-api/config"
+	dbconfig "git.zam.io/wallet-backend/web-api/config/db"
+	servconf "git.zam.io/wallet-backend/web-api/config/server"
 	"go.uber.org/dig"
 	"os"
 	"time"

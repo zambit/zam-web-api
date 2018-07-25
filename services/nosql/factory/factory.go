@@ -3,9 +3,9 @@ package factory
 import (
 	"fmt"
 	"github.com/go-redis/redis"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql/mem"
-	nosqlredis "gitlab.com/ZamzamTech/wallet-api/services/nosql/redis"
+	"git.zam.io/wallet-backend/web-api/services/nosql"
+	"git.zam.io/wallet-backend/web-api/services/nosql/mem"
+	nosqlredis "git.zam.io/wallet-backend/web-api/services/nosql/redis"
 	"io"
 	"net/url"
 	"strings"

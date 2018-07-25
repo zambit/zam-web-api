@@ -3,11 +3,11 @@ package auth
 import (
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	"gitlab.com/ZamzamTech/wallet-api/models"
-	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
-	"gitlab.com/ZamzamTech/wallet-api/server/middlewares"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"git.zam.io/wallet-backend/web-api/db"
+	"git.zam.io/wallet-backend/web-api/models"
+	"git.zam.io/wallet-backend/web-api/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/server/middlewares"
+	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"time"
 )
 

@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"net/http"
 	"strings"
 )

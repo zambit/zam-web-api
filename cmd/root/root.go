@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"gitlab.com/ZamzamTech/wallet-api/config"
+	"git.zam.io/wallet-backend/web-api/config"
 	"os"
 	"strings"
 )

@@ -5,11 +5,11 @@ import (
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	. "gitlab.com/ZamzamTech/wallet-api/fixtures"
-	"gitlab.com/ZamzamTech/wallet-api/fixtures/database"
-	"gitlab.com/ZamzamTech/wallet-api/fixtures/database/migrations"
-	"gitlab.com/ZamzamTech/wallet-api/models/types"
+	"git.zam.io/wallet-backend/web-api/db"
+	. "git.zam.io/wallet-backend/web-api/fixtures"
+	"git.zam.io/wallet-backend/web-api/fixtures/database"
+	"git.zam.io/wallet-backend/web-api/fixtures/database/migrations"
+	"git.zam.io/wallet-backend/web-api/models/types"
 )
 
 const (

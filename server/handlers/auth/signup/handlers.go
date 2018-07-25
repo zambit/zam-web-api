@@ -2,14 +2,14 @@ package signup
 
 import (
 	"fmt"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	"gitlab.com/ZamzamTech/wallet-api/models"
-	"gitlab.com/ZamzamTech/wallet-api/models/types"
-	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
-	confflow "gitlab.com/ZamzamTech/wallet-api/server/handlers/flows/confirmation"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"git.zam.io/wallet-backend/web-api/db"
+	"git.zam.io/wallet-backend/web-api/models"
+	"git.zam.io/wallet-backend/web-api/models/types"
+	"git.zam.io/wallet-backend/web-api/server/handlers/base"
+	confflow "git.zam.io/wallet-backend/web-api/server/handlers/flows/confirmation"
+	"git.zam.io/wallet-backend/web-api/services/nosql"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
+	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"time"
 )
 

@@ -2,11 +2,11 @@ package dependencies
 
 import (
 	"github.com/gin-gonic/gin"
-	"gitlab.com/ZamzamTech/wallet-api/config/server"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"git.zam.io/wallet-backend/web-api/config/server"
+	"git.zam.io/wallet-backend/web-api/db"
+	"git.zam.io/wallet-backend/web-api/services/nosql"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
+	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"go.uber.org/dig"
 )
 

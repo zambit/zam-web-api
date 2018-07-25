@@ -2,7 +2,7 @@ package stub
 
 import (
 	"github.com/sirupsen/logrus"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
 )
 
 //

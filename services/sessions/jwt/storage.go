@@ -3,8 +3,8 @@ package jwt
 import (
 	"fmt"
 	"github.com/google/uuid"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
-	"gitlab.com/ZamzamTech/wallet-api/services/sessions"
+	"git.zam.io/wallet-backend/web-api/services/nosql"
+	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"gopkg.in/dgrijalva/jwt-go.v3"
 	"time"
 )

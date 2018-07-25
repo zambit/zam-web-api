@@ -10,9 +10,9 @@ import (
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"gitlab.com/ZamzamTech/wallet-api/cmd/root"
-	"gitlab.com/ZamzamTech/wallet-api/cmd/server"
-	"gitlab.com/ZamzamTech/wallet-api/config"
+	"git.zam.io/wallet-backend/web-api/cmd/root"
+	"git.zam.io/wallet-backend/web-api/cmd/server"
+	"git.zam.io/wallet-backend/web-api/config"
 	"time"
 )
 

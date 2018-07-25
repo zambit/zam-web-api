@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"github.com/chonla/format"
 	"github.com/pkg/errors"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
 )
 
 // sender renders notification in simple-text form and send it to a recipient

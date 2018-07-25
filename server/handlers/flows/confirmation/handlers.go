@@ -3,11 +3,11 @@ package confirmation
 import (
 	"fmt"
 	"github.com/gin-gonic/gin"
-	"gitlab.com/ZamzamTech/wallet-api/db"
-	"gitlab.com/ZamzamTech/wallet-api/models"
-	"gitlab.com/ZamzamTech/wallet-api/server/handlers/base"
-	"gitlab.com/ZamzamTech/wallet-api/services/nosql"
-	"gitlab.com/ZamzamTech/wallet-api/services/notifications"
+	"git.zam.io/wallet-backend/web-api/db"
+	"git.zam.io/wallet-backend/web-api/models"
+	"git.zam.io/wallet-backend/web-api/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/services/nosql"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
 	"net/http"
 	"time"
 )
