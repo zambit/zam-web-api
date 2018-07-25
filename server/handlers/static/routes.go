@@ -1,8 +1,8 @@
 package static
 
 import (
-	"github.com/gin-gonic/gin"
 	"git.zam.io/wallet-backend/web-api/server/handlers/base"
+	"github.com/gin-gonic/gin"
 )
 
 // Register adds static routes such as not found

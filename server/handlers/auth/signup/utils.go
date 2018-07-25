@@ -2,13 +2,13 @@ package signup
 
 import (
 	"fmt"
-	"github.com/gin-gonic/gin"
-	"github.com/go-playground/validator"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/models"
 	"git.zam.io/wallet-backend/web-api/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/services/nosql"
 	"git.zam.io/wallet-backend/web-api/services/notifications"
+	"github.com/gin-gonic/gin"
+	"github.com/go-playground/validator"
 	"net/http"
 	"time"
 )

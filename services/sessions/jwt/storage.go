@@ -2,9 +2,9 @@ package jwt
 
 import (
 	"fmt"
-	"github.com/google/uuid"
 	"git.zam.io/wallet-backend/web-api/services/nosql"
 	"git.zam.io/wallet-backend/web-api/services/sessions"
+	"github.com/google/uuid"
 	"gopkg.in/dgrijalva/jwt-go.v3"
 	"time"
 )

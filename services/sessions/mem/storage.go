@@ -1,9 +1,9 @@
 package mem
 
 import (
+	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"github.com/google/uuid"
 	"github.com/pkg/errors"
-	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"sync"
 	"time"
 )

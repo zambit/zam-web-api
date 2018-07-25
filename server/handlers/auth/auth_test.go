@@ -1,8 +1,6 @@
 package auth
 
 import (
-	. "github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"git.zam.io/wallet-backend/web-api/db"
 	_ "git.zam.io/wallet-backend/web-api/server/handlers"
 	"git.zam.io/wallet-backend/web-api/server/handlers/base"
@@ -10,6 +8,8 @@ import (
 	notifmocks "git.zam.io/wallet-backend/web-api/services/notifications/mocks"
 	"git.zam.io/wallet-backend/web-api/services/sessions"
 	sessmocks "git.zam.io/wallet-backend/web-api/services/sessions/mocks"
+	. "github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 
 	. "git.zam.io/wallet-backend/web-api/fixtures"
 	"git.zam.io/wallet-backend/web-api/fixtures/database"
@@ -17,9 +17,9 @@ import (
 
 	"bytes"
 	"encoding/json"
+	"git.zam.io/wallet-backend/web-api/models"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
-	"git.zam.io/wallet-backend/web-api/models"
 	"net/http"
 	"time"
 )

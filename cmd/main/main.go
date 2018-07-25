@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/spf13/viper"
 	"git.zam.io/wallet-backend/web-api/cmd/root"
 	"git.zam.io/wallet-backend/web-api/cmd/server"
 	"git.zam.io/wallet-backend/web-api/config"
+	"github.com/spf13/viper"
 )
 
 // main executes specified command using cobra, on error will panic for nice stack print and non-zero exit code

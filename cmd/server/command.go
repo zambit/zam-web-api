@@ -11,7 +11,6 @@ import (
 	"io"
 	"time"
 
-	"github.com/pkg/errors"
 	"git.zam.io/wallet-backend/web-api/config"
 	serverconf "git.zam.io/wallet-backend/web-api/config/server"
 	"git.zam.io/wallet-backend/web-api/db"
@@ -28,6 +27,7 @@ import (
 	"git.zam.io/wallet-backend/web-api/services/sessions"
 	sessjwt "git.zam.io/wallet-backend/web-api/services/sessions/jwt"
 	sessmem "git.zam.io/wallet-backend/web-api/services/sessions/mem"
+	"github.com/pkg/errors"
 )
 
 // Create and initialize server command for given viper instance

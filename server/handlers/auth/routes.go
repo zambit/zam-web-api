@@ -1,11 +1,11 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
 	"git.zam.io/wallet-backend/web-api/server/handlers/auth/dependencies"
+	"git.zam.io/wallet-backend/web-api/server/handlers/auth/recovery"
 	"git.zam.io/wallet-backend/web-api/server/handlers/auth/signup"
 	"git.zam.io/wallet-backend/web-api/server/handlers/base"
-	"git.zam.io/wallet-backend/web-api/server/handlers/auth/recovery"
+	"github.com/gin-gonic/gin"
 )
 
 // Register creates and registers /auth routes with given dependencies

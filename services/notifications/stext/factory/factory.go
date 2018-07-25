@@ -6,9 +6,9 @@ import (
 	"git.zam.io/wallet-backend/web-api/services/notifications/stext"
 	"git.zam.io/wallet-backend/web-api/services/notifications/stext/file"
 	"git.zam.io/wallet-backend/web-api/services/notifications/stext/slack"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext/twilio"
 	"net/url"
 	"strings"
-	"git.zam.io/wallet-backend/web-api/services/notifications/stext/twilio"
 )
 
 // New creates backend guessing concrete type from URI, panic if guess is failed

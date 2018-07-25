@@ -1,13 +1,13 @@
 package migrations
 
 import (
+	dbconfig "git.zam.io/wallet-backend/web-api/config/db"
+	"git.zam.io/wallet-backend/web-api/fixtures"
 	"github.com/golang-migrate/migrate"
 	_ "github.com/golang-migrate/migrate/database/postgres"
 	_ "github.com/golang-migrate/migrate/source/file"
 	"github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	dbconfig "git.zam.io/wallet-backend/web-api/config/db"
-	"git.zam.io/wallet-backend/web-api/fixtures"
 	"os"
 	"path"
 	"runtime"

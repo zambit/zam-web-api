@@ -1,11 +1,11 @@
 package database
 
 import (
-	"github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	dbconfig "git.zam.io/wallet-backend/web-api/config/db"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/fixtures"
+	"github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 )
 
 // init provides database connection

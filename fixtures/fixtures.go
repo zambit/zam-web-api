@@ -1,11 +1,11 @@
 package fixtures
 
 import (
-	"github.com/onsi/ginkgo"
-	. "github.com/onsi/gomega"
 	"git.zam.io/wallet-backend/web-api/config"
 	dbconfig "git.zam.io/wallet-backend/web-api/config/db"
 	servconf "git.zam.io/wallet-backend/web-api/config/server"
+	"github.com/onsi/ginkgo"
+	. "github.com/onsi/gomega"
 	"go.uber.org/dig"
 	"os"
 	"time"

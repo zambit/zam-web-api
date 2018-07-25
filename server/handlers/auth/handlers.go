@@ -1,13 +1,13 @@
 package auth
 
 import (
-	"github.com/gin-gonic/gin"
-	"github.com/pkg/errors"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/models"
 	"git.zam.io/wallet-backend/web-api/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/server/middlewares"
 	"git.zam.io/wallet-backend/web-api/services/sessions"
+	"github.com/gin-gonic/gin"
+	"github.com/pkg/errors"
 	"time"
 )
 

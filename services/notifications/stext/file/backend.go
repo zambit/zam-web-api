@@ -1,9 +1,9 @@
 package file
 
 import (
-	"os"
-	"git.zam.io/wallet-backend/web-api/services/notifications/stext"
 	"bytes"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext"
+	"os"
 	"time"
 )
 
@@ -14,7 +14,7 @@ type backend struct {
 
 // New
 func New(fileName string) stext.IBackend {
-	f, err := os.OpenFile(fileName, os.O_APPEND | os.O_WRONLY, os.ModeAppend)
+	f, err := os.OpenFile(fileName, os.O_APPEND|os.O_WRONLY, os.ModeAppend)
 	if err != nil {
 		panic(err)
 	}

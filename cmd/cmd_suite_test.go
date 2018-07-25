@@ -4,15 +4,15 @@ import (
 	"testing"
 
 	"bytes"
+	"git.zam.io/wallet-backend/web-api/cmd/root"
+	"git.zam.io/wallet-backend/web-api/cmd/server"
+	"git.zam.io/wallet-backend/web-api/config"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
 	"github.com/spf13/cobra"
 	"github.com/spf13/pflag"
 	"github.com/spf13/viper"
-	"git.zam.io/wallet-backend/web-api/cmd/root"
-	"git.zam.io/wallet-backend/web-api/cmd/server"
-	"git.zam.io/wallet-backend/web-api/config"
 	"time"
 )
 

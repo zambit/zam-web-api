@@ -1,8 +1,8 @@
 package stub
 
 import (
-	"github.com/sirupsen/logrus"
 	"git.zam.io/wallet-backend/web-api/services/notifications"
+	"github.com/sirupsen/logrus"
 )
 
 //

@@ -2,14 +2,14 @@ package models
 
 import (
 	"fmt"
-	. "github.com/onsi/ginkgo"
-	"github.com/onsi/ginkgo/extensions/table"
-	. "github.com/onsi/gomega"
 	"git.zam.io/wallet-backend/web-api/db"
 	. "git.zam.io/wallet-backend/web-api/fixtures"
 	"git.zam.io/wallet-backend/web-api/fixtures/database"
 	"git.zam.io/wallet-backend/web-api/fixtures/database/migrations"
 	"git.zam.io/wallet-backend/web-api/models/types"
+	. "github.com/onsi/ginkgo"
+	"github.com/onsi/ginkgo/extensions/table"
+	. "github.com/onsi/gomega"
 )
 
 const (

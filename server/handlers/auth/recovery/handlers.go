@@ -2,7 +2,6 @@ package recovery
 
 import (
 	"fmt"
-	"github.com/pkg/errors"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/models"
 	"git.zam.io/wallet-backend/web-api/models/types"
@@ -10,6 +9,7 @@ import (
 	confflow "git.zam.io/wallet-backend/web-api/server/handlers/flows/confirmation"
 	"git.zam.io/wallet-backend/web-api/services/nosql"
 	"git.zam.io/wallet-backend/web-api/services/notifications"
+	"github.com/pkg/errors"
 	"time"
 )
 

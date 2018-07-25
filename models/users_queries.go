@@ -2,10 +2,10 @@ package models
 
 import (
 	"database/sql"
-	"github.com/lib/pq"
-	"github.com/pkg/errors"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/models/types"
+	"github.com/lib/pq"
+	"github.com/pkg/errors"
 	"strconv"
 )
 

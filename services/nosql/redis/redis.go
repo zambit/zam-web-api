@@ -1,14 +1,14 @@
 package redis
 
 import (
+	"fmt"
+	"git.zam.io/wallet-backend/web-api/services/nosql"
 	"github.com/go-redis/redis"
 	"github.com/segmentio/objconv/json"
-	"git.zam.io/wallet-backend/web-api/services/nosql"
 	"io"
-	"time"
-	"strings"
 	"math"
-	"fmt"
+	"strings"
+	"time"
 )
 
 // New creates nosql.IStorage wrapper
@@ -97,7 +97,6 @@ func (c clientSetWrapper) Add(val string) error {
 func (c clientSetWrapper) AddExpire(val string, ttl time.Duration) error {
 	// cleanup expired tokens
 
-
 	cmd := c.client.ZRemRangeByScore(c.setKey, "-inf", fmt.Sprintf("%d", time.Now().UTC().Unix()-1))
 	if cmd.Err() != nil {
 		return coerceRedisErr(cmd.Err())
@@ -111,7 +110,7 @@ func (c clientSetWrapper) AddExpire(val string, ttl time.Duration) error {
 	}
 
 	return coerceRedisErr(c.client.ZAdd(c.setKey, redis.Z{
-		Score: score,
+		Score:  score,
 		Member: val,
 	}).Err())
 }
@@ -132,8 +131,8 @@ func (c clientSetWrapper) Check(val string) (bool, error) {
 
 func (c clientSetWrapper) List() ([]string, error) {
 	cmd := c.client.ZRangeByScore(c.setKey, redis.ZRangeBy{
-		Min: fmt.Sprintf("%d", time.Now().UTC().Unix()),
-		Max: "+inf",
+		Min:   fmt.Sprintf("%d", time.Now().UTC().Unix()),
+		Max:   "+inf",
 		Count: 100,
 	})
 	if cmd.Err() != nil {

@@ -1,11 +1,11 @@
 package stext
 
 import (
-	"testing"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
+	"git.zam.io/wallet-backend/web-api/services/notifications/stext/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
-	"git.zam.io/wallet-backend/web-api/services/notifications/stext/mocks"
-	"git.zam.io/wallet-backend/web-api/services/notifications"
+	"testing"
 )
 
 func TestSimpleTextNotificator(t *testing.T) {
@@ -60,7 +60,7 @@ var _ = Describe("testing simple text notificator", func() {
 				err := notificator.Send(
 					notifications.ActionRegistrationConfirmationRequested,
 					map[string]interface{}{
-						"code": "556611",
+						"code":  "556611",
 						"phone": testRecipient,
 					},
 					notifications.Urgent,
@@ -116,7 +116,7 @@ var _ = Describe("testing simple text notificator", func() {
 					notifications.ActionPasswordRecoveryConfirmationRequested,
 					map[string]interface{}{
 						"phone": testRecipient,
-						"code": "556611",
+						"code":  "556611",
 					},
 					notifications.Urgent,
 				)

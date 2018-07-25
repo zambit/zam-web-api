@@ -2,9 +2,9 @@ package stext
 
 import (
 	"fmt"
+	"git.zam.io/wallet-backend/web-api/services/notifications"
 	"github.com/chonla/format"
 	"github.com/pkg/errors"
-	"git.zam.io/wallet-backend/web-api/services/notifications"
 )
 
 // sender renders notification in simple-text form and send it to a recipient

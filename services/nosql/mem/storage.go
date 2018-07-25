@@ -27,8 +27,7 @@ type memSet struct {
 
 type strWithExpireSet map[string]time.Time
 
-type notASet struct {}
-
+type notASet struct{}
 
 // New returns new in-memory storage
 func New() nosql.IStorage {

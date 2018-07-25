@@ -2,9 +2,9 @@ package middlewares
 
 import (
 	"fmt"
+	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"git.zam.io/wallet-backend/web-api/services/sessions"
 	"net/http"
 	"strings"
 )

@@ -2,10 +2,10 @@ package factory
 
 import (
 	"fmt"
-	"github.com/go-redis/redis"
 	"git.zam.io/wallet-backend/web-api/services/nosql"
 	"git.zam.io/wallet-backend/web-api/services/nosql/mem"
 	nosqlredis "git.zam.io/wallet-backend/web-api/services/nosql/redis"
+	"github.com/go-redis/redis"
 	"io"
 	"net/url"
 	"strings"

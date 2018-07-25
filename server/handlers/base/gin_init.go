@@ -1,9 +1,9 @@
 package base
 
 import (
+	"git.zam.io/wallet-backend/web-api/models/types"
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator"
-	"git.zam.io/wallet-backend/web-api/models/types"
 	"reflect"
 	"strings"
 )

@@ -1,9 +1,9 @@
 package recovery
 
 import (
-	"github.com/gin-gonic/gin"
 	"git.zam.io/wallet-backend/web-api/server/handlers/auth/dependencies"
 	"git.zam.io/wallet-backend/web-api/server/handlers/base"
+	"github.com/gin-gonic/gin"
 )
 
 // Register creates and registers /auth/recovery routes with given dependencies

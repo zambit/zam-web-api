@@ -2,9 +2,9 @@ package root
 
 import (
 	"encoding/json"
+	"git.zam.io/wallet-backend/web-api/config"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
-	"git.zam.io/wallet-backend/web-api/config"
 	"os"
 	"strings"
 )
