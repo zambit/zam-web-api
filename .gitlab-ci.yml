@@ -4,47 +4,56 @@ stages:
   - test
   - deploy
 
+variables:
+  PROJECT_GO_PATH: git.zam.io/wallet-backend/web-api
+  EXECUTABLE_ENTRY_POINT: cmd/main/main.go
+  EXECUTABLE_NAME: web-api
+
 build:
   stage: build
   variables:
-      GO_PROJECT_PATH: git.zam.io/wallet-backend/web-api
-      GOROOT: /usr/lib/go-1.10/
+    GOROOT: /usr/lib/go-1.10/
+    GOPATH: /var/opt/golang
+    BUILD_OUT_DIR: $CI_PROJECT_DIR/build
+  cache:
+    key: build_$CI_COMMIT_REF_NAME
+    paths:
+    - vendor
   script:
     # prepare go-env
-    - mkdir build
-    - export BUILD_OUT_DIR=`pwd`/build
-
-    - mkdir -p bin
+    - export PATH=$PATH:$GOROOT/bin:$GOPATH/bin
+    - export OLDGOPATH=$GOPATH
     - export GOPATH=`pwd`
-    - export PATH=$PATH:/usr/lib/go-1.10/bin:$GOPATH/bin
+
+    - mkdir -p $BUILD_OUT_DIR
   
     # copy all files into go-style path
-    - mkdir -p .src/$GO_PROJECT_PATH
-    - cp -r * .src/$GO_PROJECT_PATH
+    - mkdir -p vendor
+    - mkdir -p .src/$PROJECT_GO_PATH
+    - cp -r * .src/$PROJECT_GO_PATH
     - mv .src src
-
-    - cd src/$GO_PROJECT_PATH
+    - cd src/$PROJECT_GO_PATH
 
     # install dep tool and ensure dependencies
-    - INSTALL_DIRECTORY=`pwd` curl https://raw.githubusercontent.com/golang/dep/master/install.sh | sh
     - dep ensure
 
-    # install ginkgo and build tests
-    - go get github.com/onsi/ginkgo
-    - go build -o ginkgo github.com/onsi/ginkgo/ginkgo
-    - ./ginkgo build -r .
-    - mkdir $BUILD_OUT_DIR/tests
+    # build tests
+    - ginkgo build -r .
+    - mkdir -p $BUILD_OUT_DIR/tests
     - cp `find -name *.test` $BUILD_OUT_DIR/tests
 
     # build binary into artifact
-    - go build -o $BUILD_OUT_DIR/web-api cmd/main/main.go
+    - go build -o $BUILD_OUT_DIR/$EXECUTABLE_NAME $EXECUTABLE_ENTRY_POINT
 
     # copy migrations
-    - mkdir $BUILD_OUT_DIR/migrations
+    - mkdir -p $BUILD_OUT_DIR/migrations
     - cp db/migrations/* $BUILD_OUT_DIR/migrations
 
     # copy config generator
     - cp config_generator.sh $BUILD_OUT_DIR
+
+    # cache vendor path
+    - cp -r vendor/* $CI_PROJECT_DIR/vendor/
   tags:
     - build_srv
   artifacts:
@@ -53,9 +62,10 @@ build:
 
 pages_build:
   stage: build_docs
+  variables:
+    OUT_FILE_NAME: $CI_COMMIT_REF_NAME.html
   script:
     - mkdir -p docs
-    - export OUT_FILE_NAME=${CI_COMMIT_REF_NAME}.html
     - npm install redoc-cli
     - ./node_modules/redoc-cli/index.js bundle -o $OUT_FILE_NAME docs/swagger/api.yaml
     - cp $OUT_FILE_NAME docs/
@@ -77,7 +87,7 @@ pages:
   script:
     - mkdir -p public
     - mkdir -p pages
-    - export OUT_FILE_NAME=${CI_COMMIT_REF_NAME}.html
+    - export OUT_FILE_NAME=$CI_COMMIT_REF_NAME.html
     - cp docs/$OUT_FILE_NAME pages
     - cp pages/* public
   tags:
@@ -113,18 +123,21 @@ test:
 deploy_on_staging:
   stage: deploy
   script:
+    - export DEPLOY_DIR=$STAGING_DEPLOY_DIR/$EXECUTABLE_NAME
+
     # remove outdated binary and copy new one
-    - rm -f $STAGING_DEPLOY_DIR/web-api
-    - cp build/web-api $STAGING_DEPLOY_DIR
-    - cp build/config_generator.sh $STAGING_DEPLOY_DIR
-    - cp -r build/migrations $STAGING_DEPLOY_DIR
+    - mkdir -p $DEPLOY_DIR
+    - rm -f $DEPLOY_DIR/$EXECUTABLE_NAME
+    - cp build/$EXECUTABLE_NAME $DEPLOY_DIR
+    - cp build/config_generator.sh $DEPLOY_DIR
+    - cp -r build/migrations $DEPLOY_DIR
 
     # generate config
-    - cd $STAGING_DEPLOY_DIR
+    - cd $DEPLOY_DIR
     - bash config_generator.sh > conf.yaml
 
     # trigger systemd to restart service by softly killing old instance
-    - killall -1 web-api
+    - killall -1 $EXECUTABLE_NAME
   only:
     - master
   tags:
