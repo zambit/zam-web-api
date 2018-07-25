@@ -9,6 +9,9 @@ variables:
   EXECUTABLE_ENTRY_POINT: cmd/main/main.go
   EXECUTABLE_NAME: web-api
 
+#============
+# COMMON PART
+#============
 build:
   stage: build
   variables:
@@ -31,6 +34,7 @@ build:
     - mkdir -p vendor
     - mkdir -p .src/$PROJECT_GO_PATH
     - cp -r * .src/$PROJECT_GO_PATH
+    - "[ -f vendor/Gopkg.lock ] && cp vendor/Gopkg.lock .src/$PROJECT_GO_PATH/"
     - mv .src src
     - cd src/$PROJECT_GO_PATH
 
@@ -53,6 +57,7 @@ build:
     - cp config_generator.sh $BUILD_OUT_DIR
 
     # cache vendor path
+    - cp Gopkg.lock $CI_PROJECT_DIR/vendor/
     - cp -r vendor/* $CI_PROJECT_DIR/vendor/
   tags:
     - build_srv
