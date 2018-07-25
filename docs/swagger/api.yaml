@@ -789,9 +789,12 @@ definitions:
       - $ref: "#/definitions/BaseResponse"
       - type: object
         properties:
-          phone:
-            type: string
-            description: User phone number
+          data:
+            type: object
+            properties:
+              phone:
+                type: string
+                description: User phone number
     required:
       - phone
 
