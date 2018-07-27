@@ -157,6 +157,6 @@ Currently **Wallet-Web-Api** exports such endpoints
 * `POST   /api/v1/auth/signin`
 * `DELETE /api/v1/auth/signout`
 * `GET    /api/v1/auth/check`
-* `POST   /api/v1/auth/refresh_token`
+* `GET    /api/v1/auth/refresh_token`
 
 Also some endpoints requires `Authorization` header, so it have not be filtered.

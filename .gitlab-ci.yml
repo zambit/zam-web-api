@@ -30,7 +30,7 @@ build:
     - export GOPATH=`pwd`
 
     - mkdir -p $BUILD_OUT_DIR
-  
+
     # copy all files into go-style path
     - mkdir -p vendor
     - mkdir -p .src/$PROJECT_GO_PATH
@@ -43,10 +43,10 @@ build:
     - glide install
 
     # build tests if they are present
-    - tests_query=$( find -name '*_test.go' )
-    - '[ ! -z "$output" ] && ginkgo build -r .'
+    - tests_query=$( find -name '*_test.go | grep -v vendor' )
+    - '[ ! -z "$tests_query" ] && ginkgo build -r .'
     - mkdir -p $BUILD_OUT_DIR/tests
-    - cp `find -name *.test` $BUILD_OUT_DIR/tests
+    - '[ ! -z "$tests_query" ] && cp `find -name *.test` $BUILD_OUT_DIR/tests'
 
     # build binary into artifact
     - go build -o $BUILD_OUT_DIR/$EXECUTABLE_NAME $EXECUTABLE_ENTRY_POINT
@@ -74,17 +74,19 @@ pages_build:
   script:
     - mkdir -p docs
     - npm install redoc-cli
-    - ./node_modules/redoc-cli/index.js bundle -o $OUT_FILE_NAME docs/swagger/api.yaml
+    - npm install swagger-cli
+    - ./node_modules/swagger-cli/bin/swagger-cli.js bundle docs/api/index.yaml > boundled.json
+    - ./node_modules/redoc-cli/index.js bundle -o $OUT_FILE_NAME boundled.json
     - cp $OUT_FILE_NAME docs/
   tags:
-   - build_srv
+    - build_srv
   artifacts:
     paths:
       - docs
   cache:
     key: node_modules
     paths:
-    - node_modules/
+      - node_modules/
   only:
     - master
     - development
@@ -98,11 +100,11 @@ pages:
     - cp docs/$OUT_FILE_NAME pages
     - cp pages/* public
   tags:
-   - build_srv
+    - build_srv
   cache:
     key: pages_cache
     paths:
-    - pages/
+      - pages/
   artifacts:
     paths:
       - docs

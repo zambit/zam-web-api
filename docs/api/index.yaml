@@ -457,6 +457,22 @@ paths:
           description: In case of any error
           schema:
             $ref: "#/definitions/Error"
+
+  /auth/refresh_token:
+    get:
+      security:
+      - Bearer: []
+      summary: Refresh user token
+      responses:
+        200:
+          description: Ok, token has been successfuly refreshed
+          schema:
+            $ref: "#/definitions/UserTokenResponse"
+        default:
+          description: In case of any error
+          schema:
+            $ref: "#/definitions/Error"
+
   /auth/check:
     get:
       security:
@@ -467,48 +483,6 @@ paths:
           description: Ok, user authorized
           schema:
             $ref: "#/definitions/UserPhoneResponse"
-        default:
-          description: In case of any error
-          schema:
-            $ref: "#/definitions/Error"
-
-  /auth/confirmation/{link}:
-    post:
-      security:
-        - Bearer: []
-      summary: Confirm user phone
-      parameters:
-        - in: path
-          name: link
-          required: true
-          type: string
-          description: Confirmation ID
-      responses:
-        201:
-          description: Validation successfull
-          schema:
-            $ref: '#/definitions/UserTokenResponse'
-        default:
-          description: In case of any error
-          schema:
-            $ref: "#/definitions/Error"
-          
-  /auth/receive/{link}:
-    post:
-      security:
-        - Bearer: []
-      summary: Create new user from pending transaction
-      parameters:
-        - in: path
-          name: link
-          required: true
-          type: string
-          description: Recv invitation ID
-      responses:
-        204:
-          description:  User created by recv invitation
-          schema:
-            $ref: '#/definitions/UserTokenResponse'
         default:
           description: In case of any error
           schema:
