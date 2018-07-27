@@ -32,6 +32,28 @@ func WrapHandler(handler HandlerFunc) gin.HandlerFunc {
 	}
 }
 
+// WrapMiddleware do same as WrapHandler but intended to wrap middlewares.
+//
+// If either err or http code are returned, request will be aborted
+func WrapMiddleware(handler HandlerFunc) gin.HandlerFunc {
+	return func(c *gin.Context) {
+		// perform handler
+		val, code, err := handler(c)
+
+		// zero values means that middleware passes further
+		if val == nil && code == 0 && err == nil {
+			c.Next()
+			return
+		}
+
+		// post-process response
+		code, response := postProcessResult(c, val, code, err)
+
+		// write response object
+		c.JSON(code, response)
+	}
+}
+
 // postProcessResult coerces handler result into base api response
 func postProcessResult(c *gin.Context, val interface{}, code int, err error) (int, BaseResponse) {
 	// collect errors
