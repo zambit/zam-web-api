@@ -21,9 +21,10 @@
 out
 gen
 
-# go-dep
+# vendor
 vendor
 Gopkg.lock
+glide.lock
 
 # go coverage
 *.coverprofile

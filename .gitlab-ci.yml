@@ -18,6 +18,7 @@ build:
     GOROOT: /usr/lib/go-1.10/
     GOPATH: /var/opt/golang
     BUILD_OUT_DIR: $CI_PROJECT_DIR/build
+    DEP_LOCK_FILE: glide.lock
   cache:
     key: build_$CI_COMMIT_REF_NAME
     paths:
@@ -34,15 +35,16 @@ build:
     - mkdir -p vendor
     - mkdir -p .src/$PROJECT_GO_PATH
     - cp -r * .src/$PROJECT_GO_PATH
-    - "[ -f vendor/Gopkg.lock ] && cp vendor/Gopkg.lock .src/$PROJECT_GO_PATH/"
+    - "[ -f vendor/$DEP_LOCK_FILE ] && cp vendor/$DEP_LOCK_FILE .src/$PROJECT_GO_PATH/"
     - mv .src src
     - cd src/$PROJECT_GO_PATH
 
-    # install dep tool and ensure dependencies
-    - dep ensure
+    # install dependencies
+    - glide install
 
-    # build tests
-    - ginkgo build -r .
+    # build tests if they are present
+    - tests_query=$( find -name '*_test.go' )
+    - '[ ! -z "$output" ] && ginkgo build -r .'
     - mkdir -p $BUILD_OUT_DIR/tests
     - cp `find -name *.test` $BUILD_OUT_DIR/tests
 
@@ -57,7 +59,7 @@ build:
     - cp config_generator.sh $BUILD_OUT_DIR
 
     # cache vendor path
-    - cp Gopkg.lock $CI_PROJECT_DIR/vendor/
+    - cp $DEP_LOCK_FILE $CI_PROJECT_DIR/vendor/
     - cp -r vendor/* $CI_PROJECT_DIR/vendor/
   tags:
     - build_srv

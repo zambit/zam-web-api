@@ -1,0 +1,64 @@
+package: git.zam.io/wallet-backend/web-api
+import:
+- package: github.com/chonla/format
+
+- package: github.com/gin-gonic/gin
+  version: 85221af84cf6ee99dc900bc41912abc09acfc1b5
+  subpackages:
+  - binding
+
+- package: github.com/gin-contrib/cors
+
+- package: github.com/go-playground/validator
+  version: 9.20.2
+
+- package: github.com/go-redis/redis
+
+- package: github.com/golang-migrate/migrate
+  subpackages:
+  - database/postgres
+  - source/file
+- package: github.com/google/uuid
+  version: 0.2.0
+
+- package: github.com/lib/pq
+
+- package: github.com/onsi/ginkgo
+  version: 1.5.0
+  subpackages:
+  - extensions/table
+
+- package: github.com/onsi/gomega
+  version: 1.4.0
+
+- package: github.com/pkg/errors
+
+- package: github.com/segmentio/objconv
+  subpackages:
+  - json
+
+- package: github.com/sirupsen/logrus
+
+- package: github.com/spf13/cobra
+  version: 0.0.3
+
+- package: github.com/spf13/viper
+  version: 1.0.2
+
+- package: github.com/stretchr/testify
+  subpackages:
+  - mock
+
+- package: github.com/ttacon/libphonenumber
+  version: 1.0.0
+
+- package: go.uber.org/dig
+  version: 45540ff1846c207f109bbb7de2f2748f7198ca21
+
+- package: golang.org/x/crypto
+  subpackages:
+  - bcrypt
+- package: gopkg.in/dgrijalva/jwt-go.v3
+
+testImport:
+- package: github.com/spf13/pflag
