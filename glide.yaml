@@ -60,5 +60,8 @@ import:
   - bcrypt
 - package: gopkg.in/dgrijalva/jwt-go.v3
 
+- package: github.com/jmoiron/sqlx
+
+
 testImport:
 - package: github.com/spf13/pflag

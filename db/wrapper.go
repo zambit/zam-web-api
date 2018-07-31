@@ -4,12 +4,21 @@ import (
 	"context"
 	"database/sql"
 	"fmt"
+	"github.com/jmoiron/sqlx"
+	"github.com/jmoiron/sqlx/reflectx"
 	"github.com/lib/pq"
+	"reflect"
+	"unsafe"
 )
 
 // Db is wrapper around go-pg/pg DB object aimed to support some additional functionary
 type Db struct {
-	*sql.DB
+	*sqlx.DB
+}
+
+// NamedQueryRow implements hijack on sqlx.Rows turning them into sqlx.Row
+func (db *Db) NamedQueryRow(query string, arg interface{}) *sqlx.Row {
+	return namedQueryRow(db, query, arg)
 }
 
 // Factory just binds uri to New func call
@@ -26,7 +35,7 @@ func New(uri string) (*Db, error) {
 	if err != nil {
 		return nil, err
 	}
-	db, err := sql.Open("postgres", connStr)
+	db, err := sqlx.Open("postgres", connStr)
 	if err != nil {
 		return nil, err
 	}
@@ -41,14 +50,22 @@ func New(uri string) (*Db, error) {
 	return &Db{db}, nil
 }
 
-// ITx represents base tx interface for which both sql.DB and sql.Tx math
-type ITx interface {
-	Exec(query string, args ...interface{}) (sql.Result, error)
-	ExecContext(ctx context.Context, query string, args ...interface{}) (sql.Result, error)
+// IGenericQueryMaker this interface may represent both sqlx.DB and sqlx.Tx
+type IGenericQueryMaker interface {
+	sqlx.Queryer
+	sqlx.Execer
+	sqlx.QueryerContext
+	sqlx.ExecerContext
 
-	Query(query string, args ...interface{}) (*sql.Rows, error)
+	NamedQuery(query string, arg interface{}) (*sqlx.Rows, error)
 	QueryRow(query string, args ...interface{}) *sql.Row
 	QueryRowContext(ctx context.Context, query string, args ...interface{}) *sql.Row
+}
+
+// ITx represents base tx interface for which both sql.DB and sql.Tx math
+type ITx interface {
+	IGenericQueryMaker
+	NamedQueryRow(query string, arg interface{}) *sqlx.Row
 }
 
 // RollbackError allow to recognize special errors which occurs while Recovering in case of closure error or panic recovery
@@ -68,7 +85,7 @@ type RollbackError interface {
 // Tx wraps function which will be executed safely relative to pg transaction aspect even in case of panic.
 // It's like context manager.
 func (db *Db) Tx(f func(tx ITx) error) error {
-	tx, err := db.Begin()
+	tx, err := db.Beginx()
 	if err != nil {
 		return err
 	}
@@ -88,7 +105,7 @@ func (db *Db) Tx(f func(tx ITx) error) error {
 	}()
 
 	// perform closure
-	err = f(tx)
+	err = f(addNamedQueryRowMethodOnITx{tx})
 	if err != nil {
 		rErr := tx.Rollback()
 		if rErr != nil {
@@ -141,4 +158,71 @@ func (e rollbackErr) ClosureErr() error {
 // Cause implements RollbackError interface
 func (e rollbackErr) Cause() error {
 	return e.err
+}
+
+// addNamedQueryRowMethodOnITx used to demolish luck of query row method on Tx
+type addNamedQueryRowMethodOnITx struct {
+	IGenericQueryMaker
+}
+
+// utils
+// NamedQueryRow implements hijack on sqlx.Rows turning them into sqlx.Row
+func (a addNamedQueryRowMethodOnITx) NamedQueryRow(query string, arg interface{}) *sqlx.Row {
+	return namedQueryRow(a.IGenericQueryMaker, query, arg)
+}
+
+func getMapper(a IGenericQueryMaker) *reflectx.Mapper {
+	if db, ok := a.(*sqlx.DB); ok {
+		return db.Mapper
+	}
+	if tx, ok := a.(*sqlx.Tx); ok {
+		return tx.Mapper
+	}
+	panic(fmt.Errorf(
+		"given generic query maker interface of type %T does have underlying type of either *sqlx.DB not *sqlx.Tx", a,
+	))
+}
+
+type rowCreatorType func(err error, rows *sql.Rows, mapper *reflectx.Mapper) *sqlx.Row
+var createRowFunc rowCreatorType
+
+func namedQueryRow(qm IGenericQueryMaker, query string, arg interface{}) *sqlx.Row {
+	rows, err := qm.NamedQuery(query, arg)
+	return createRowFunc(err, rows.Rows, getMapper(qm))
+}
+
+func init() {
+	createRowFunc = createRowCreator()
+}
+
+func createRowCreator() rowCreatorType {
+	rowType := reflect.TypeOf(sqlx.Row{})
+
+	errValField, ok := rowType.FieldByName("err")
+	if !ok {
+		panic("failed to find err field on *sqlx.Row")
+	}
+
+	rowsValField, ok := rowType.FieldByName("rows")
+	if !ok {
+		panic("failed to find rows field on *sqlx.Row")
+	}
+
+	return func(err error, rows *sql.Rows, mapper *reflectx.Mapper) *sqlx.Row {
+		row := &sqlx.Row{}
+		rowElem := reflect.ValueOf(row).Elem()
+
+		if err != nil {
+			errField := reflect.NewAt(errValField.Type, unsafe.Pointer(rowElem.UnsafeAddr() + errValField.Offset)).Elem()
+			errField.Set(reflect.ValueOf(err))
+		}
+
+		if rows != nil {
+			rowsField := reflect.NewAt(rowsValField.Type, unsafe.Pointer(rowElem.UnsafeAddr() + rowsValField.Offset)).Elem()
+			rowsField.Set(reflect.ValueOf(rows))
+		}
+
+		row.Mapper = mapper
+		return row
+	}
 }
