@@ -2,7 +2,7 @@ package stext
 
 import (
 	"fmt"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"github.com/chonla/format"
 	"github.com/pkg/errors"
 )

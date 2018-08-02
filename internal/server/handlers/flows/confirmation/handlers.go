@@ -6,7 +6,7 @@ import (
 	"git.zam.io/wallet-backend/web-api/internal/models"
 	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
@@ -15,7 +15,6 @@ import (
 type ExternalResources struct {
 	Database    *db.Db
 	Storage     nosql.IStorage
-	Notificator notifications.ISender
 	Generator   notifications.IGenerator
 }
 
@@ -32,11 +31,6 @@ var (
 		Name:    "verification_code",
 		Input:   "body",
 		Message: "code is wrong",
-	}
-	errFieldWrongToken = base.FieldErrorDescr{
-		Name:    "signup_token",
-		Input:   "body",
-		Message: "signup_token is wrong",
 	}
 	errNotAllowed = base.ErrorView{
 		Code:    http.StatusBadRequest,
@@ -61,7 +55,7 @@ func StartHandlerFactory(
 	postValidateFunc PostValidateFieldsFunc,
 	verifCodeExpire time.Duration,
 	verifCodeKeyPattern string,
-	verifCodeNotifAction string,
+	verifEventSender func(userID, userPhone, code string) error,
 	finishTokenKeyPattern string,
 ) base.HandlerFunc {
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
@@ -103,14 +97,7 @@ func StartHandlerFactory(
 			}
 
 			// send confirmation code
-			err = resources.Notificator.Send(
-				verifCodeNotifAction,
-				map[string]interface{}{
-					"phone": string(user.Phone),
-					"code":  code,
-				},
-				notifications.Confirmation,
-			)
+			err = verifEventSender(fmt.Sprint(user.ID), string(user.Phone), code)
 
 			// sadly, but whole transaction should be rollbacked if notification sent fails
 			if err != nil {
@@ -218,7 +205,7 @@ func FinishHandlerFactory(
 	postValidateFunc PostValidateFieldsFunc,
 	getTokenFromParams func(interface{}) string,
 	respFactory func(tx db.ITx, user models.User) (interface{}, error),
-	finishedAction string,
+	finishEventSender func(userID string) error,
 	finishTokenKeyPattern string,
 	tokenFieldName string,
 ) base.HandlerFunc {
@@ -271,16 +258,9 @@ func FinishHandlerFactory(
 				return
 			}
 
-			if finishedAction != "" {
+			if finishEventSender != nil {
 				// notify about finish
-				err = resources.Notificator.Send(
-					finishedAction,
-					map[string]interface{}{
-						"id":    user.ID,
-						"phone": user.Phone,
-					},
-					notifications.Urgent,
-				)
+				err = finishEventSender(fmt.Sprint(user.ID))
 				if err != nil {
 					return
 				}

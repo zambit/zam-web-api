@@ -3,7 +3,7 @@ package twilio
 import (
 	"encoding/json"
 	"fmt"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/stext"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext"
 	"io/ioutil"
 	"net/http"
 	"net/url"

@@ -2,11 +2,11 @@ package factory
 
 import (
 	"fmt"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/stext"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/stext/file"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/stext/slack"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/stext/twilio"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext/file"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext/slack"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext/twilio"
 	"net/url"
 	"strings"
 )

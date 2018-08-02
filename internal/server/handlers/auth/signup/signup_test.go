@@ -12,8 +12,9 @@ import (
 	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	nosqlmock "git.zam.io/wallet-backend/web-api/pkg/services/nosql/mocks"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
-	notifmock "git.zam.io/wallet-backend/web-api/pkg/services/notifications/mocks"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	notifmock "git.zam.io/wallet-backend/web-api/internal/services/notifications/mocks"
+	iscmock "git.zam.io/wallet-backend/web-api/internal/services/isc/mocks"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	sessmock "git.zam.io/wallet-backend/web-api/pkg/services/sessions/mocks"
 	"github.com/gin-gonic/gin"
@@ -24,6 +25,7 @@ import (
 	"net/http"
 	"testing"
 	"time"
+	"git.zam.io/wallet-backend/web-api/internal/services/isc"
 )
 
 const (
@@ -77,8 +79,8 @@ var _ = Describe("Given user signup flow", func() {
 		return s, s
 	})
 
-	BeforeEachCProvide(func() (*notifmock.ISender, notifications.ISender) {
-		s := &notifmock.ISender{}
+	BeforeEachCProvide(func() (*iscmock.IEventNotificator, isc.IEventNotificator) {
+		s := &iscmock.IEventNotificator{}
 		return s, s
 	})
 
@@ -97,10 +99,10 @@ var _ = Describe("Given user signup flow", func() {
 			func(
 				d *db.Db,
 				storage nosql.IStorage,
-				notifSender notifications.ISender,
+				notifier isc.IEventNotificator,
 				generator notifications.IGenerator,
 			) base.HandlerFunc {
-				return StartHandlerFactory(d, notifSender, generator, storage, time.Minute)
+				return StartHandlerFactory(d, notifier, generator, storage, time.Minute)
 			},
 		)
 		BeforeEachCProvide(func(d *db.Db) models.User {
@@ -114,31 +116,32 @@ var _ = Describe("Given user signup flow", func() {
 		})
 
 		Context("when start performed without errors", func() {
-			BeforeEachCInvoke(func(storage *nosqlmock.IStorage, notifSender *notifmock.ISender, generator *notifmock.IGenerator) {
+			BeforeEachCInvoke(func(
+				storage *nosqlmock.IStorage,
+				generator *notifmock.IGenerator,
+			) {
 				// setup mocks
 				generator.On("RandomCode").Return(confirmCode)
 				storage.On("SetWithExpire", "user:"+validPhone2+":signup:code", confirmCode, mock.Anything).Return(nil)
 				storage.On("Delete", "user:"+validPhone2+":signup:token").Return(nil)
-				notifSender.On(
-					"Send",
-					notifications.ActionRegistrationConfirmationRequested,
-					map[string]interface{}{
-						"phone": validPhone2,
-						"code":  confirmCode,
-					},
-					notifications.Confirmation,
-				).Return(nil)
 			})
 
 			for _, state := range []models.UserStatusName{models.UserStatusPending, models.UserStatusVerified} {
 				Context(fmt.Sprintf("when user already in %s", state), func() {
 					type providedUser models.User
-					BeforeEachCProvide(func(d *db.Db) providedUser {
+					BeforeEachCProvide(func(d *db.Db, notifSender *iscmock.IEventNotificator) providedUser {
 						user, err := models.NewUser(validPhone2, pass2, state, nil)
 						Expect(err).NotTo(HaveOccurred())
 
 						user, err = models.CreateUser(d, user)
 						Expect(err).NotTo(HaveOccurred())
+
+						notifSender.On(
+							"RegistrationVerificationRequested",
+							fmt.Sprint(user.ID),
+							validPhone2,
+							confirmCode,
+						).Return(nil)
 
 						return providedUser(user)
 					})
@@ -147,6 +150,7 @@ var _ = Describe("Given user signup flow", func() {
 						d *db.Db,
 						handler base.HandlerFunc,
 						user providedUser,
+						notifSender *iscmock.IEventNotificator,
 					) {
 						_, _, err := handler(createSimpleContext(gin.H{
 							"phone": user.Phone,
@@ -162,7 +166,14 @@ var _ = Describe("Given user signup flow", func() {
 
 			ItD(
 				"should return ok due to phone valid and no such user registered",
-				func(handler base.HandlerFunc, d *db.Db, referrer models.User) {
+				func(handler base.HandlerFunc, d *db.Db, referrer models.User, notifSender *iscmock.IEventNotificator) {
+					notifSender.On(
+						"RegistrationVerificationRequested",
+						mock.Anything,
+						validPhone2,
+						confirmCode,
+					).Return(nil)
+
 					val, _, err := handler(createSimpleContext(gin.H{
 						"phone": validPhone2,
 					}))
@@ -170,14 +181,26 @@ var _ = Describe("Given user signup flow", func() {
 					Expect(val).To(BeNil())
 
 					By("verifying db state")
-					_, err = models.GetUserByPhone(d, validPhone2)
+					user, err := models.GetUserByPhone(d, validPhone2)
 					Expect(err).NotTo(HaveOccurred())
+
+					By("verifying notifier mock calls")
+					Expect(len(notifSender.Calls)).To(Equal(1))
+					Expect(len(notifSender.Calls[0].Arguments)).To(Equal(3))
+					Expect(notifSender.Calls[0].Arguments[0]).To(Equal(fmt.Sprint(user.ID)))
 				},
 			)
 
 			ItD(
 				"should return ok due to phone valid, no such user registered and referrer exists",
-				func(handler base.HandlerFunc, d *db.Db, referrer models.User) {
+				func(handler base.HandlerFunc, d *db.Db, referrer models.User, notifSender *iscmock.IEventNotificator) {
+					notifSender.On(
+						"RegistrationVerificationRequested",
+						mock.Anything,
+						validPhone2,
+						confirmCode,
+					).Return(nil)
+
 					val, _, err := handler(createSimpleContext(gin.H{
 						"phone":          validPhone2,
 						"referrer_phone": referrer.Phone,
@@ -189,6 +212,11 @@ var _ = Describe("Given user signup flow", func() {
 					user, err := models.GetUserByPhone(d, validPhone2)
 					Expect(err).NotTo(HaveOccurred())
 					Expect(user.ReferrerID).To(Equal(&referrer.ID))
+
+					By("verifying notifier mock calls")
+					Expect(len(notifSender.Calls)).To(Equal(1))
+					Expect(len(notifSender.Calls[0].Arguments)).To(Equal(3))
+					Expect(notifSender.Calls[0].Arguments[0]).To(Equal(fmt.Sprint(user.ID)))
 				},
 			)
 		})
@@ -341,7 +369,7 @@ var _ = Describe("Given user signup flow", func() {
 				d *db.Db,
 				storage nosql.IStorage,
 				generator notifications.IGenerator,
-				notifier notifications.ISender,
+				notifier isc.IEventNotificator,
 				sessStorage sessions.IStorage,
 			) base.HandlerFunc {
 				return FinishHandlerFactory(d, storage, notifier, sessStorage, time.Minute)
@@ -362,7 +390,7 @@ var _ = Describe("Given user signup flow", func() {
 				user models.User,
 				storage *nosqlmock.IStorage,
 				generator *notifmock.IGenerator,
-				notifier *notifmock.ISender,
+				notifier *iscmock.IEventNotificator,
 				sessStorage *sessmock.IStorage,
 			) {
 				storage.On("Get", "user:"+validPhone1+":signup:token").Return(signUpToken, nil)
@@ -373,12 +401,7 @@ var _ = Describe("Given user signup flow", func() {
 					}, time.Minute,
 				).Return(sessions.Token(authToken), nil)
 				storage.On("Delete", "user:"+validPhone1+":signup:token").Return(nil)
-				notifier.On(
-					"Send", notifications.ActionRegistrationCompleted, map[string]interface{}{
-						"id":    user.ID,
-						"phone": user.Phone,
-					}, notifications.Urgent,
-				).Return(nil)
+				notifier.On("RegistrationCompleted", fmt.Sprint(user.ID)).Return(nil)
 			})
 
 			ItD("should return ok because token is valid", func(d *db.Db, user models.User, handler base.HandlerFunc) {
@@ -406,7 +429,7 @@ var _ = Describe("Given user signup flow", func() {
 				user models.User,
 				storage *nosqlmock.IStorage,
 				generator *notifmock.IGenerator,
-				notifier *notifmock.ISender,
+				notifier *iscmock.IEventNotificator,
 				sessStorage *sessmock.IStorage,
 			) {
 				storage.On("Get", "user:"+validPhone1+":signup:token").Return(signUpToken, nil)

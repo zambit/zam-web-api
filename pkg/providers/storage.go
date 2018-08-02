@@ -1,7 +1,8 @@
-package factory
+package providers
 
 import (
 	"fmt"
+	serverconf "git.zam.io/wallet-backend/web-api/config/server"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql/mem"
 	nosqlredis "git.zam.io/wallet-backend/web-api/pkg/services/nosql/redis"
@@ -11,8 +12,15 @@ import (
 	"strings"
 )
 
-// NewFromUri creates nosql storage according to given scheme (only mem, redis and rediss are supported)
-func NewFromUri(uri string) (nosql.IStorage, io.Closer, error) {
+// Storage creates nosql storage according to given scheme (only mem, redis and rediss are supported)
+func Storage(conf serverconf.Scheme) (nosql.IStorage, io.Closer, error) {
+	if conf.Storage.URI == "" {
+		conf.Storage.URI = "mem://"
+	}
+	return storageFromURI(conf.Storage.URI)
+}
+
+func storageFromURI(uri string) (nosql.IStorage, io.Closer, error) {
 	parsed, err := url.Parse(uri)
 	if err != nil {
 		return nil, nil, err

@@ -5,6 +5,7 @@ import (
 	"git.zam.io/wallet-backend/web-api/config/server"
 	"github.com/spf13/viper"
 	"time"
+	"git.zam.io/wallet-backend/web-api/config/isc"
 )
 
 // RootScheme is the scheme used by top-level app
@@ -17,6 +18,9 @@ type RootScheme struct {
 
 	// Server holds different web-server related configuration values
 	Server server.Scheme
+
+	// ISC contains inter-process communication params
+	ISC isc.Scheme
 }
 
 // Init set default values

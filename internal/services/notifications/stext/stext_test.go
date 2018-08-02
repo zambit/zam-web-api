@@ -1,8 +1,8 @@
 package stext
 
 import (
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/stext/mocks"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"testing"

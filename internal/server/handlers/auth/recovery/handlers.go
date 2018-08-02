@@ -8,9 +8,10 @@ import (
 	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
 	confflow "git.zam.io/wallet-backend/web-api/internal/server/handlers/flows/confirmation"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"github.com/pkg/errors"
 	"time"
+	"git.zam.io/wallet-backend/web-api/internal/services/isc"
 )
 
 var (
@@ -71,7 +72,7 @@ func getUserState(_ db.ITx, storage nosql.IStorage, user models.User) (state con
 // StartHandlerFactory
 func StartHandlerFactory(
 	d *db.Db,
-	notifier notifications.ISender,
+	notifier isc.IEventNotificator,
 	generator notifications.IGenerator,
 	storage nosql.IStorage,
 	storageExpire time.Duration,
@@ -79,7 +80,6 @@ func StartHandlerFactory(
 	resources := confflow.ExternalResources{
 		Database:    d,
 		Storage:     storage,
-		Notificator: notifier,
 		Generator:   generator,
 	}
 	return confflow.StartHandlerFactory(
@@ -101,7 +101,9 @@ func StartHandlerFactory(
 		},
 		storageExpire,
 		verificationCodeKeyPattern,
-		notifications.ActionPasswordRecoveryConfirmationRequested,
+		func(userID, userPhone, code string) error {
+			return notifier.PasswordRecoveryVerificationRequested(userID, userPhone, code)
+		},
 		tokenKeyPattern,
 	)
 }
@@ -151,11 +153,10 @@ func VerifyHandlerFactory(
 }
 
 // FinishHandlerFactory
-func FinishHandlerFactory(d *db.Db, storage nosql.IStorage, notifier notifications.ISender) base.HandlerFunc {
+func FinishHandlerFactory(d *db.Db, storage nosql.IStorage, notifier isc.IEventNotificator) base.HandlerFunc {
 	resources := confflow.ExternalResources{
 		Database:    d,
 		Storage:     storage,
-		Notificator: notifier,
 	}
 
 	return confflow.FinishHandlerFactory(
@@ -188,7 +189,9 @@ func FinishHandlerFactory(d *db.Db, storage nosql.IStorage, notifier notificatio
 		func(tx db.ITx, user models.User) (resp interface{}, err error) {
 			return
 		},
-		notifications.ActionPasswordRecoveryCompleted,
+		func(userID string) error {
+			return notifier.RegistrationCompleted(userID)
+		},
 		tokenKeyPattern,
 		"recovery_token",
 	)

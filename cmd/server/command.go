@@ -2,39 +2,27 @@ package server
 
 import (
 	"fmt"
-	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
-	"github.com/sirupsen/logrus"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
-	"io"
-	"time"
-
 	"git.zam.io/wallet-backend/web-api/config"
 	serverconf "git.zam.io/wallet-backend/web-api/config/server"
-	"git.zam.io/wallet-backend/web-api/db"
+	iscconf "git.zam.io/wallet-backend/web-api/config/isc"
+	dbconf "git.zam.io/wallet-backend/web-api/config/db"
 	_ "git.zam.io/wallet-backend/web-api/internal/server/handlers"
 	"git.zam.io/wallet-backend/web-api/internal/server/handlers/auth"
-	"git.zam.io/wallet-backend/web-api/internal/server/handlers/auth/dependencies"
 	"git.zam.io/wallet-backend/web-api/internal/server/handlers/static"
-	"git.zam.io/wallet-backend/web-api/internal/server/middlewares"
-	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
-	nosqlfactory "git.zam.io/wallet-backend/web-api/pkg/services/nosql/factory"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
-	stextfactory "git.zam.io/wallet-backend/web-api/pkg/services/notifications/stext/factory"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/stub"
-	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
-	sessjwt "git.zam.io/wallet-backend/web-api/pkg/services/sessions/jwt"
-	sessmem "git.zam.io/wallet-backend/web-api/pkg/services/sessions/mem"
-	"github.com/pkg/errors"
+	"git.zam.io/wallet-backend/web-api/cmd/utils"
+	"git.zam.io/wallet-backend/web-api/pkg/providers"
+	internalproviders "git.zam.io/wallet-backend/web-api/internal/providers"
 )
 
 // Create and initialize server command for given viper instance
 func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 	command := cobra.Command{
 		Use:   "server",
-		Short: "Runs Wallet-API server",
+		Short: "Runs Web-API server",
 		RunE: func(_ *cobra.Command, args []string) error {
 			return serverMain(*cfg)
 		},
@@ -57,140 +45,56 @@ func serverMain(cfg config.RootScheme) (err error) {
 	// create DI container and populate it with providers
 	c := dig.New()
 
-	// provide root logger
-	err = c.Provide(func() logrus.FieldLogger {
-		return logrus.New()
+	// provide container itself
+	utils.MustProvide(c, func() *dig.Container {
+		return c
 	})
-	if err != nil {
-		return
-	}
+
+	// provide configuration and her parts
+	utils.MustProvide(c, func() (config.RootScheme, dbconf.Scheme, iscconf.Scheme, serverconf.Scheme) {
+		return cfg, cfg.DB, cfg.ISC, cfg.Server
+	})
+
+	// provide root logger
+	utils.MustProvide(c, providers.RootLogger)
 
 	// provide ordinal db connection
-	err = c.Provide(db.Factory(cfg.DB.URI))
-	if err != nil {
-		return
-	}
-
-	// provide sessions storage
-	err = c.Provide(func(conf serverconf.Scheme, persistentStorage nosql.IStorage) (res sessions.IStorage, err error) {
-		// catch jwt storage panics
-		defer func() {
-			r := recover()
-			if r != nil {
-				if e, ok := r.(error); ok {
-					err = e
-				} else {
-					panic(r)
-				}
-			}
-		}()
-
-		switch conf.Auth.TokenStorage {
-		case "mem", "":
-			return sessmem.New(), nil
-		case "jwt", "jwtpersistent":
-			if conf.JWT == nil {
-				return nil, errors.New("jwt like token storage required, but jwt configuration not provided")
-			}
-			res = sessjwt.New(conf.JWT.Method, []byte(conf.JWT.Secret), func() time.Time { return time.Now().UTC() })
-
-			if conf.Auth.TokenStorage == "jwtpersistent" {
-				res = sessjwt.WithStorage(
-					res, persistentStorage, func(data map[string]interface{}, token string) string {
-						return fmt.Sprintf("user:%v:sessions", data["phone"])
-					},
-				)
-			}
-			return
-		default:
-			return nil, fmt.Errorf("unsupported token storage type: %s", conf.Auth.TokenStorage)
-		}
-	})
-	if err != nil {
-		return
-	}
+	utils.MustProvide(c, providers.DB)
 
 	// provide nosql storage
-	err = c.Provide(func(conf serverconf.Scheme) (nosql.IStorage, io.Closer, error) {
-		if conf.Storage.URI == "" {
-			conf.Storage.URI = "mem://"
-		}
-		return nosqlfactory.NewFromUri(conf.Storage.URI)
-	})
-	if err != nil {
-		return
-	}
+	utils.MustProvide(c, providers.Storage)
+
+	// provide sessions storage
+	utils.MustProvide(c, providers.SessionsStorage)
 
 	// provide static generator
-	err = c.Provide(func(conf serverconf.Scheme) notifications.IGenerator {
-		return notifications.NewWithCodeAlphabet(conf.Generator.CodeLen, conf.Generator.CodeAlphabet)
-	})
-	if err != nil {
-		return
-	}
+	utils.MustProvide(c, providers.Generator)
 
-	// provide notificator
-	err = c.Provide(func(conf serverconf.Scheme, logger logrus.FieldLogger) notifications.ISender {
-		if conf.NotificatorURL == "" {
-			return stub.New(logger)
-		} else {
-			return stextfactory.New(conf.NotificatorURL)
-		}
-	})
-	if err != nil {
-		return
-	}
+	// provide broker
+	utils.MustProvide(c, providers.Broker)
 
-	err = c.Provide(func() serverconf.Scheme {
-		return cfg.Server
-	})
-	if err != nil {
-		return
-	}
+	// provide old notificator
+	utils.MustProvide(c, internalproviders.Notificator)
 
 	// provide gin engine
-	err = c.Provide(func(logger logrus.FieldLogger) *gin.Engine {
-		corsCfg := cors.DefaultConfig()
-		corsCfg.AllowMethods = append(corsCfg.AllowMethods, "DELETE")
-		corsCfg.AllowAllOrigins = true
-		corsCfg.AllowHeaders = []string{"*"}
+	utils.MustProvide(c, providers.GinEngine)
+	utils.MustProvide(c, providers.RootRouter, dig.Name("root"))
 
-		engine := gin.New()
-		engine.Use(
-			gin.Recovery(),
-			gin.Logger(),
-			cors.New(corsCfg),
-		)
-		return engine
-	})
-	if err != nil {
-		return
-	}
+	// provide events notificator
+	utils.MustProvide(c, internalproviders.EventNotificator)
 
 	// provide api router
-	err = c.Provide(func(engine *gin.Engine) gin.IRouter {
-		return engine.Group("/api/v1")
-	}, dig.Name("api_routes"))
-	if err != nil {
-		return
-	}
+	utils.MustProvide(c, internalproviders.ApiRoutes, dig.Name("api_routes"))
 
 	// provide auth middleware
-	err = c.Provide(func(sessStorage sessions.IStorage) gin.HandlerFunc {
-		return middlewares.AuthMiddlewareFactory(sessStorage, cfg.Server.Auth.TokenName)
-	}, dig.Name("auth"))
+	utils.MustProvide(c, internalproviders.AuthMiddleware, dig.Name("auth"))
 
-	// close all resources
-	defer c.Invoke(func(closers ...io.Closer) {
-		for _, c := range closers {
-			c.Close()
-		}
-	})
+	// register handlers
+	utils.MustInvoke(c, static.Register)
+	utils.MustInvoke(c, auth.Register)
 
 	// Run server!
-	err = c.Invoke(func(engine *gin.Engine, dependencies dependencies.Dependencies) error {
-		auth.Register(dependencies)
-		static.Register(engine)
+	utils.MustInvoke(c, func(engine *gin.Engine) error {
 		return engine.Run(fmt.Sprintf("%s:%d", cfg.Server.Host, cfg.Server.Port))
 	})
 

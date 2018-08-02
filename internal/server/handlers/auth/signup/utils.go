@@ -6,7 +6,7 @@ import (
 	"git.zam.io/wallet-backend/web-api/internal/models"
 	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
-	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"net/http"
