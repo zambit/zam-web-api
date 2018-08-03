@@ -11,4 +11,10 @@ server:
     jwt:
         secret: '$STAGING_SECRET'
         method: HS256
-    notificatorurl: '$NOTIFICATIONS_URL
+    notificatorurl: '$NOTIFICATIONS_URL'
+
+isc:
+    brokeruri: '$BROKER_URI'
+    statsenabled: true
+    statspath: /internal/stats
+'
