@@ -3,8 +3,8 @@ package auth
 import (
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models"
-	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
-	"git.zam.io/wallet-backend/web-api/internal/server/middlewares"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/pkg/server/middlewares"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"

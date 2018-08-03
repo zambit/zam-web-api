@@ -1,7 +1,7 @@
 package static
 
 import (
-	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"github.com/gin-gonic/gin"
 )
 

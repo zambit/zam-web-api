@@ -12,7 +12,7 @@ import (
 	dbconf "git.zam.io/wallet-backend/web-api/config/db"
 	_ "git.zam.io/wallet-backend/web-api/internal/server/handlers"
 	"git.zam.io/wallet-backend/web-api/internal/server/handlers/auth"
-	"git.zam.io/wallet-backend/web-api/internal/server/handlers/static"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/static"
 	"git.zam.io/wallet-backend/web-api/cmd/utils"
 	"git.zam.io/wallet-backend/web-api/pkg/providers"
 	internalproviders "git.zam.io/wallet-backend/web-api/internal/providers"
@@ -87,7 +87,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 	utils.MustProvide(c, internalproviders.ApiRoutes, dig.Name("api_routes"))
 
 	// provide auth middleware
-	utils.MustProvide(c, internalproviders.AuthMiddleware, dig.Name("auth"))
+	utils.MustProvide(c, providers.AuthMiddleware, dig.Name("auth"))
 
 	// register handlers
 	utils.MustInvoke(c, static.Register)

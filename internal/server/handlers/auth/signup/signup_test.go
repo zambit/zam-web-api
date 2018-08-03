@@ -9,7 +9,7 @@ import (
 	"git.zam.io/wallet-backend/web-api/fixtures/database"
 	"git.zam.io/wallet-backend/web-api/fixtures/database/migrations"
 	"git.zam.io/wallet-backend/web-api/internal/models"
-	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	nosqlmock "git.zam.io/wallet-backend/web-api/pkg/services/nosql/mocks"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"

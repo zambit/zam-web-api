@@ -3,7 +3,7 @@ package auth
 import (
 	"git.zam.io/wallet-backend/web-api/db"
 	_ "git.zam.io/wallet-backend/web-api/internal/server/handlers"
-	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	notifmocks "git.zam.io/wallet-backend/web-api/internal/services/notifications/mocks"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"

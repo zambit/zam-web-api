@@ -5,7 +5,7 @@ import (
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models"
 	"git.zam.io/wallet-backend/web-api/internal/models/types"
-	"git.zam.io/wallet-backend/web-api/internal/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	confflow "git.zam.io/wallet-backend/web-api/internal/server/handlers/flows/confirmation"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
