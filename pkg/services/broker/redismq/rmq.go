@@ -223,7 +223,7 @@ func (c *Broker) PublishCtx(ctx context.Context, identifier broker.Identifier, p
 		}
 		bytes, err := json.Marshal(&msg)
 		if err != nil {
-			l.WithError(err).Error("message publishing failed")
+			l.WithError(err).Error("message marshalling error")
 			return err
 		}
 
@@ -231,6 +231,7 @@ func (c *Broker) PublishCtx(ctx context.Context, identifier broker.Identifier, p
 			l.Error("message publishing failed")
 			return errPubFailed
 		}
+		l.Info("message successfully published")
 		return nil
 	})
 }
@@ -262,7 +263,9 @@ func wrapRmqPanicAsErr(wrappable func() error) (err error) {
 				return
 			}
 		}
-		panic(p)
+		if p != nil {
+			panic(p)
+		}
 	}()
 
 	return wrappable()
