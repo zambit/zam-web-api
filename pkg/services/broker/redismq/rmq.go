@@ -133,6 +133,9 @@ func (c *Broker) Consume(resource, action string, consumer broker.ConsumeFunc) e
 
 		queue := c.Connection.OpenQueue(queueName)
 		queue.SetPushQueue(queue)
+		if !queue.StartConsuming(1, time.Second/2) {
+			return errConsumeFailed
+		}
 		queue.AddConsumerFunc(queueName, func(d rmq.Delivery) {
 			msg := message{}
 			err := json.Unmarshal([]byte(d.Payload()), &msg)
@@ -161,16 +164,13 @@ func (c *Broker) Consume(resource, action string, consumer broker.ConsumeFunc) e
 				c,
 				&delivery{
 					c.logger.WithField("module", "broker.redismq.delivery").WithField("ident", ident),
-					d, ident, []byte(d.Payload()), msg.Headers,
+					d, ident, []byte(msg.Payload), msg.Headers,
 				},
 			)
 			if err != nil {
 				c.logger.WithError(err).Error("error occurs while calling handler")
 			}
 		})
-		if !queue.StartConsuming(1, time.Second/2) {
-			return errConsumeFailed
-		}
 
 		c.logger.WithField("path", fmt.Sprintf("%s.%s.*", resource, action)).Info("consuming started")
 
