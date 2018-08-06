@@ -27,11 +27,7 @@ const (
 )
 
 var (
-	errFieldWrongCode = base.FieldErrorDescr{
-		Name:    "verification_code",
-		Input:   "body",
-		Message: "code is wrong",
-	}
+	errFieldWrongCode = base.NewFieldErr("body", "verification_code", "code is wrong")
 	errNotAllowed = base.ErrorView{
 		Code:    http.StatusBadRequest,
 		Message: "such action not allowed",
@@ -40,7 +36,7 @@ var (
 
 type ParamsFactory func() interface{}
 
-type PostValidateFieldsFunc func(resources ExternalResources, request interface{}, err base.FieldsErrorView) error
+type PostValidateFieldsFunc func(resources ExternalResources, request interface{}, err error) error
 type GetUserFunc func(tx db.ITx, request interface{}) (user models.User, err error)
 type GetUserStateFunc func(tx db.ITx, storage nosql.IStorage, user models.User) (state State, err error)
 type SetUserStateFunc func(tx db.ITx, storage nosql.IStorage, user models.User, newState State, params interface{}) error
@@ -107,10 +103,6 @@ func StartHandlerFactory(
 			// update state
 			return setUserStateFunc(tx, resources.Storage, user, StatePending, params)
 		})
-		if err != nil {
-			err = coerceFieldErr(err)
-			return
-		}
 		return
 	}
 }
@@ -188,9 +180,6 @@ func VerifyHandlerFactory(
 
 			return
 		})
-		if err != nil {
-			err = coerceFieldErr(err)
-		}
 		return
 	}
 }
@@ -230,11 +219,7 @@ func FinishHandlerFactory(
 			tokenKey := finishTokenKey(finishTokenKeyPattern, user)
 			token, err := resources.Storage.Get(tokenKey)
 			if err == nosql.ErrNoSuchKeyFound || getTokenFromParams(params) != token {
-				err = base.FieldErrorDescr{
-					Name:    tokenFieldName,
-					Input:   "body",
-					Message: fmt.Sprintf("%s is wrong", tokenFieldName),
-				}
+				err = base.NewFieldErr("body", tokenFieldName, fmt.Sprintf("%s is wrong", tokenFieldName))
 				return
 			}
 			// delete finish token
@@ -270,22 +255,7 @@ func FinishHandlerFactory(
 			resp, err = respFactory(tx, user)
 			return
 		})
-		if err != nil {
-			err = coerceFieldErr(err)
-		}
 		return
-	}
-}
-
-// coerceErr
-func coerceFieldErr(err error) error {
-	switch e := err.(type) {
-	case base.ErrorView:
-		return err
-	case base.FieldErrorDescr:
-		return base.NewErrorsView("").AddFieldDescr(e)
-	default:
-		return e
 	}
 }
 
@@ -297,12 +267,9 @@ func paramsOrErr(
 	postValidateFunc PostValidateFieldsFunc,
 ) (params interface{}, err error) {
 	params = factory()
-	bErr, err := base.ShouldBindJSON(c, params)
+	err = base.ShouldBindJSON(c, params)
 	if err != nil {
-		if len(bErr.Fields) == 0 || postValidateFunc == nil {
-			return
-		}
-		err = postValidateFunc(resources, params, bErr)
+		err = postValidateFunc(resources, params, err)
 		return
 	}
 	return

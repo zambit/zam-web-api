@@ -11,6 +11,8 @@ import (
 	"time"
 )
 
+var errWrongUserOrPass = base.NewFieldErr("body", "phone", "either phone or password are invalid")
+
 // SigninHandlerFactory returns handler which perform user authorization, requires session storage to store newly
 // created session
 func SigninHandlerFactory(
@@ -18,10 +20,6 @@ func SigninHandlerFactory(
 	sessStorage sessions.IStorage,
 	authExpiration time.Duration,
 ) base.HandlerFunc {
-	wrongUserOrPasswordErr := base.NewErrorsView("wrong authorization data").AddField(
-		"body", "phone", "either phone or password are invalid",
-	)
-
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
 		params := UserSigninRequest{}
 		err = c.ShouldBindJSON(&params)
@@ -33,7 +31,7 @@ func SigninHandlerFactory(
 		user, err := models.GetUserByPhoneAndStatus(d, params.Phone, models.UserStatusActive)
 		if err != nil {
 			if err == models.ErrUserNotFound {
-				err = wrongUserOrPasswordErr
+				err = errWrongUserOrPass
 			}
 			return
 		}
@@ -44,7 +42,7 @@ func SigninHandlerFactory(
 			return
 		}
 		if !passEqual {
-			err = wrongUserOrPasswordErr
+			err = errWrongUserOrPass
 			return
 		}
 

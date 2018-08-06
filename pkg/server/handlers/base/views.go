@@ -2,6 +2,7 @@ package base
 
 import (
 	"fmt"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 	"github.com/go-playground/validator"
 	"strings"
 )
@@ -12,60 +13,61 @@ type ErrorView struct {
 	Message string `json:"message"`
 }
 
-// NewErrorView
-func NewErrorView(err error, code ...int) ErrorView {
-	c := 0
-	if len(code) > 0 {
-		c = code[0]
-	}
-	return ErrorView{
-		Message: err.Error(),
-		Code:    c,
-	}
-}
-
 // ErrorView
 func (err ErrorView) Error() string {
 	return fmt.Sprintf("%d: %s", err.Code, err.Message)
 }
 
-// FieldErrorDescr
-type FieldErrorDescr struct {
-	Name    string `json:"name"`
-	Input   string `json:"input"`
-	Message string `json:"message"`
+// FieldErrorView
+type FieldErrorView struct {
+	ErrorView `json:",inline"`
+
+	Name  string `json:"name"`
+	Input string `json:"input"`
 }
 
 // Error implements error interface
-func (err FieldErrorDescr) Error() string {
+func (err FieldErrorView) Error() string {
 	return fmt.Sprintf(`field error: %s{%s: %s}`, err.Input, err.Name, err.Message)
 }
 
-// FieldsErrorView represents errors occurred relative to the sets of fields
-type FieldsErrorView struct {
-	ErrorView `json:",inline"`
-	Fields    []FieldErrorDescr `json:"fields"`
+// NewFieldErr creates new field error
+func NewFieldErr(input, name, message string) FieldErrorView {
+	return FieldErrorView{
+		ErrorView: ErrorView{Message: message},
+		Input:     input,
+		Name:      name,
+	}
+}
+
+// HaveFieldErr checks is given error is list of errs, in such case scans whole list to search FieldErrorView with
+// given field name.
+func HaveFieldErr(err error, fieldName string) bool {
+	switch errs := err.(type) {
+	case merrors.Errors:
+		for _, e := range errs {
+			if fe, ok := e.(FieldErrorView); ok && fe.Name == fieldName {
+				return true
+			}
+		}
+	case FieldErrorView:
+		return errs.Name == fieldName
+	}
+	return false
 }
 
 // NewFieldsErrorsView
-func NewFieldsErrorsView(validationErrs validator.ValidationErrors) (view FieldsErrorView) {
-	fieldErrs := make([]FieldErrorDescr, 0, len(validationErrs))
+func ViewFromValidationErrs(validationErrs validator.ValidationErrors) (view error) {
 	for _, vErr := range validationErrs {
 		if vErr == nil {
 			continue
 		}
 		fieldName, message := coerceValidationErr(vErr)
-		fieldErrs = append(
-			fieldErrs,
-			FieldErrorDescr{
-				Input:   "body",
-				Name:    fieldName,
-				Message: message,
-			},
+		view = merrors.Append(
+			view,
+			NewFieldErr("body", fieldName, message),
 		)
 	}
-	view.Fields = fieldErrs
-	view.Message = "wrong parameters"
 	return
 }
 
@@ -95,35 +97,4 @@ func coerceValidationErr(err validator.FieldError) (paramName, message string) {
 		}
 	}
 	return
-}
-
-// NewErrorsView
-func NewErrorsView(message string) (view FieldsErrorView) {
-	if message == "" {
-		message = "wrong parameters"
-	}
-	view.Message = message
-	return
-}
-
-// AddField
-func (err FieldsErrorView) AddField(input, name, message string) FieldsErrorView {
-	err.Fields = append(err.Fields, FieldErrorDescr{name, input, message})
-	return err
-}
-
-// AddFieldDescr
-func (err FieldsErrorView) AddFieldDescr(descr FieldErrorDescr) FieldsErrorView {
-	err.Fields = append(err.Fields, descr)
-	return err
-}
-
-// ErrorView implements error interface
-func (err FieldsErrorView) Error() string {
-	builder := strings.Builder{}
-	for _, f := range err.Fields {
-		builder.WriteString(fmt.Sprintf("%s %s: %s\n", f.Input, f.Name, f.Message))
-	}
-
-	return fmt.Sprintf("%s: \n%s", err.ErrorView.Error(), builder.String())
 }

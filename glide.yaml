@@ -65,6 +65,10 @@ import:
 - package: github.com/adjust/rmq
   version: master
 
+- package: git.zam.io/wallet-backend/common
+  version: master
+  repo: http://git.zam.io/wallet-backend/common.git
+  vcs: git
 
 testImport:
 - package: github.com/spf13/pflag

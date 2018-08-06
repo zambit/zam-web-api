@@ -12,14 +12,11 @@ import (
 	"github.com/pkg/errors"
 	"time"
 	"git.zam.io/wallet-backend/web-api/internal/services/isc"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 )
 
 var (
-	errFieldUserNotFound = base.FieldErrorDescr{
-		Name:    "phone",
-		Input:   "body",
-		Message: "user not found",
-	}
+	errFieldUserNotFound = base.NewFieldErr("body", "phone", "user not found")
 )
 
 const (
@@ -96,8 +93,8 @@ func StartHandlerFactory(
 			// do nothing, confirmation flow does all job for us
 			return
 		},
-		func(resources confflow.ExternalResources, request interface{}, bErr base.FieldsErrorView) (err error) {
-			return postValidateFailedParams(d, bErr, request.(*StartRequest).Phone)
+		func(resources confflow.ExternalResources, request interface{}, fErr error) (err error) {
+			return postValidateFailedParams(d, fErr, request.(*StartRequest).Phone)
 		},
 		storageExpire,
 		verificationCodeKeyPattern,
@@ -135,8 +132,8 @@ func VerifyHandlerFactory(
 			// do nothing, confirmation flow does all job for us
 			return
 		},
-		func(resources confflow.ExternalResources, request interface{}, bErr base.FieldsErrorView) (err error) {
-			return postValidateFailedParams(d, bErr, request.(*VerifyRequest).Phone)
+		func(resources confflow.ExternalResources, request interface{}, fErr error) (err error) {
+			return postValidateFailedParams(d, fErr, request.(*VerifyRequest).Phone)
 		},
 		func(request interface{}) string {
 			return request.(*VerifyRequest).Code
@@ -180,8 +177,8 @@ func FinishHandlerFactory(d *db.Db, storage nosql.IStorage, notifier isc.IEventN
 			user.Password = password
 			return models.UpdateUser(tx, user)
 		},
-		func(resources confflow.ExternalResources, request interface{}, bErr base.FieldsErrorView) (err error) {
-			return postValidateFailedParams(d, bErr, request.(*FinishRequest).Phone)
+		func(resources confflow.ExternalResources, request interface{}, fErr error) (err error) {
+			return postValidateFailedParams(d, fErr, request.(*FinishRequest).Phone)
 		},
 		func(params interface{}) string {
 			return params.(*FinishRequest).Token
@@ -198,26 +195,15 @@ func FinishHandlerFactory(d *db.Db, storage nosql.IStorage, notifier isc.IEventN
 }
 
 // utils
-func postValidateFailedParams(d *db.Db, bErr base.FieldsErrorView, phone string) (err error) {
-	// check logical errors
-	skipUserCheck := false
-	for _, f := range bErr.Fields {
-		if f.Name == "phone" {
-			skipUserCheck = true
-		}
-	}
-
-	if !skipUserCheck {
+func postValidateFailedParams(d *db.Db, fErr error, phone string) (err error) {
+	if !base.HaveFieldErr(fErr, "phone") && phone != "" {
 		_, err = models.GetUserByPhone(d, phone)
-		if err != nil {
-			if err == models.ErrUserNotFound {
-				err = nil
-				bErr = bErr.AddFieldDescr(errFieldUserNotFound)
-			}
+		if err == models.ErrUserNotFound {
+			fErr = merrors.Append(fErr, errFieldUserNotFound)
 		}
 	}
 	if err == nil {
-		err = bErr
+		return
 	}
-	return
+	return fErr
 }

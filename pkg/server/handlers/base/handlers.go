@@ -5,6 +5,7 @@ import (
 	"github.com/go-playground/validator"
 	"io"
 	"net/http"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 )
 
 // HandlerFunc specific project-wide handler function, must return nil or object which will be json-serialized,
@@ -59,47 +60,45 @@ func postProcessResult(c *gin.Context, val interface{}, code int, err error) (in
 	// collect errors
 	var errors []error
 
-	// coerce returned error and try to guess response error code
-	if err == io.EOF {
-		code = http.StatusBadRequest
-		errors = append(errors, ErrorView{Message: "empty body"})
-	} else if err != nil {
-		// it's expect that errors will come from validator or in form of errors views
-		// other errors are interpreted as internal errors
-		switch e := err.(type) {
-		case validator.ValidationErrors:
-			errors = append(errors, NewFieldsErrorsView(e))
-			code = http.StatusBadRequest
-		case ErrorView:
-			errors = append(errors, e)
-			if e.Code == 0 {
-				code = http.StatusBadRequest
-			} else {
-				code = e.Code
-			}
-		case FieldsErrorView:
-			errors = append(errors, e)
-			if e.Code == 0 {
-				code = http.StatusBadRequest
-			} else {
-				code = e.Code
-			}
-		default:
-			errors = append(errors, ErrorView{Message: e.Error()})
-
-			code = http.StatusInternalServerError
-		}
+	sourceErrs, ok := err.(merrors.Errors)
+	if !ok {
+		sourceErrs = merrors.Errors{err}
 	}
-	// append additional errors collected while request handling
-	for _, e := range c.Errors {
-		if e.Err == err {
-			continue
-		}
 
-		errors = append(errors, e)
-		if e.Type == gin.ErrorTypePrivate {
-			// promote status to 500 in case of private error
-			code = http.StatusInternalServerError
+	// coerce returned error and try to guess response error code
+	for _, e := range sourceErrs {
+		if e == io.EOF {
+			code = http.StatusBadRequest
+			errors = append(errors, ErrorView{Message: "empty body"})
+		} else if e != nil {
+			// it's expect that errors will come from validator or in form of errors views
+			// other errors are interpreted as internal errors
+			switch e2 := e.(type) {
+			case validator.ValidationErrors:
+				if len(e2) == 0 {
+					continue
+				}
+				errors = append(errors, ViewFromValidationErrs(e2))
+				code = http.StatusBadRequest
+			case ErrorView:
+				errors = append(errors, e)
+				if e2.Code == 0 {
+					code = http.StatusBadRequest
+				} else {
+					code = e2.Code
+				}
+			case FieldErrorView:
+				errors = append(errors, e)
+				if e2.Code == 0 {
+					code = http.StatusBadRequest
+				} else {
+					code = e2.Code
+				}
+			default:
+				errors = append(errors, ErrorView{Message: e.Error()})
+
+				code = http.StatusInternalServerError
+			}
 		}
 	}
 

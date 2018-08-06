@@ -7,19 +7,17 @@ import (
 )
 
 // ShouldBindJson
-func ShouldBindJSON(c *gin.Context, to interface{}) (FieldsErrorView, error) {
+func ShouldBindJSON(c *gin.Context, to interface{}) error {
 	err := c.ShouldBindJSON(to)
 	if err != nil {
 		if vErr, ok := err.(validator.ValidationErrors); ok {
-			return NewFieldsErrorsView(vErr), vErr
+			return ViewFromValidationErrs(vErr)
 		}
 
-		return FieldsErrorView{
-			ErrorView: ErrorView{
-				Message: err.Error(),
-				Code:    http.StatusBadRequest,
-			},
-		}, err
+		return ErrorView{
+			Message: err.Error(),
+			Code:    http.StatusBadRequest,
+		}
 	}
-	return FieldsErrorView{}, nil
+	return nil
 }

@@ -140,18 +140,14 @@ var _ = Describe("Given the auth api", func() {
 				data, _, err := handler(CreateSIContext(validPhone1, pass2))
 				Expect(err).To(HaveOccurred())
 				Expect(data).To(BeNil())
-				Expect(err).To(Equal(base.NewErrorsView("wrong authorization data").AddField(
-					"body", "phone", "either phone or password are invalid",
-				)))
+				Expect(err).To(Equal(base.NewFieldErr("body", "phone", "either phone or password are invalid")))
 			})
 
 			ItD("should fail due to wrong password v2", func(handler base.HandlerFunc) {
 				data, _, err := handler(CreateSIContext(validPhone1, pass3))
 				Expect(err).To(HaveOccurred())
 				Expect(data).To(BeNil())
-				Expect(err).To(Equal(base.NewErrorsView("wrong authorization data").AddField(
-					"body", "phone", "either phone or password are invalid",
-				)))
+				Expect(err).To(Equal(base.NewFieldErr("body", "phone", "either phone or password are invalid")))
 			})
 		})
 
@@ -167,9 +163,7 @@ var _ = Describe("Given the auth api", func() {
 				data, _, err := handler(CreateSIContext(validPhone1, pass1))
 				Expect(err).To(HaveOccurred())
 				Expect(data).To(BeNil())
-				Expect(err).To(Equal(base.NewErrorsView("wrong authorization data").AddField(
-					"body", "phone", "either phone or password are invalid",
-				)))
+				Expect(err).To(Equal(base.NewFieldErr("body", "phone", "either phone or password are invalid")))
 			})
 		})
 	})

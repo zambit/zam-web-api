@@ -40,33 +40,12 @@ var _ = Describe("testing validator.ValidationErrors coercion into FieldsErrorVi
 			Expect(err).To(HaveOccurred())
 
 			vErr := err.(validator.ValidationErrors)
-			Expect(NewFieldsErrorsView(vErr)).To(Equal(
-				FieldsErrorView{
-					ErrorView: ErrorView{
-						Message: "wrong parameters",
-					},
-					Fields: []FieldErrorDescr{
-						{
-							Input:   "body",
-							Name:    "param1",
-							Message: "field is required",
-						},
-						{
-							Input:   "body",
-							Name:    "param2",
-							Message: "field value must be at least 5 items long",
-						},
-						{
-							Input:   "body",
-							Name:    "param4",
-							Message: `this field must be equal to "param3"`,
-						},
-						{
-							Input:   "body",
-							Name:    "complexName",
-							Message: "field is required",
-						},
-					},
+			Expect(ViewFromValidationErrs(vErr)).To(BeEquivalentTo(
+				[]error{
+					NewFieldErr("body", "param1", "field is required"),
+					NewFieldErr("body", "param2", "field value must be at least 5 items long"),
+					NewFieldErr("body", "param4", `this field must be equal to "param3"`),
+					NewFieldErr("body", "complexName", "field is required"),
 				},
 			))
 		})
@@ -133,9 +112,7 @@ var _ = table.DescribeTable(
 		"should give bad request on validation errors", nil, 0, validator.ValidationErrors{validator.FieldError(nil)},
 		http.StatusBadRequest, BaseResponse{
 			false,
-			[]error{
-				NewFieldsErrorsView(nil),
-			},
+			[]error{nil},
 			nil,
 		},
 	),
@@ -147,16 +124,6 @@ var _ = table.DescribeTable(
 				ErrorView{
 					Message: "err", Code: 430,
 				},
-			},
-			nil,
-		},
-	),
-	table.Entry(
-		"should give bad request on FieldsErrorView error", nil, 0, NewErrorsView("fields err"),
-		http.StatusBadRequest, BaseResponse{
-			false,
-			[]error{
-				NewErrorsView("fields err"),
 			},
 			nil,
 		},

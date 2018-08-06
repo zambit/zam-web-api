@@ -12,24 +12,13 @@ import (
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	"time"
 	"git.zam.io/wallet-backend/web-api/internal/services/isc"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 )
 
 var (
-	errFieldUserAlreadyExists = base.FieldErrorDescr{
-		Name:    "phone",
-		Input:   "body",
-		Message: "user already exists",
-	}
-	errFieldUserNotFound = base.FieldErrorDescr{
-		Name:    "phone",
-		Input:   "body",
-		Message: "user not found",
-	}
-	errFieldReferrerNotFound = base.FieldErrorDescr{
-		Name:    "referrer_phone",
-		Input:   "body",
-		Message: "referrer not found",
-	}
+	errFieldUserAlreadyExists = base.NewFieldErr("body", "phone", "user already exists")
+	errFieldUserNotFound = base.NewFieldErr("body", "phone", "user not found")
+	errFieldReferrerNotFound = base.NewFieldErr("body", "referrer_phone", "referrer not found")
 )
 
 const (
@@ -90,7 +79,7 @@ func StartHandlerFactory(
 					user, err = models.CreateUser(tx, user)
 					if err != nil {
 						if err == models.ErrReferrerNotFound {
-							err = base.NewErrorsView("").AddFieldDescr(errFieldReferrerNotFound)
+							err = errFieldReferrerNotFound
 						}
 						return
 					}
@@ -112,39 +101,28 @@ func StartHandlerFactory(
 			_, err = models.UpdateUserStatus(tx, user, models.UserStatusPending)
 			return
 		},
-		func(resources confflow.ExternalResources, request interface{}, bErr base.FieldsErrorView) (err error) {
+		func(resources confflow.ExternalResources, request interface{}, fErr error) error {
 			params := request.(*StartRequest)
 
-			// perform additional validation so if there validation error, we still can return logical errors
-			skipUserExistsErr, skipReferrerExistsErr := false, false
-			for _, f := range bErr.Fields {
-				switch f.Name {
-				case "phone":
-					skipUserExistsErr = true
-				case "referrer_phone":
-					skipReferrerExistsErr = true
+			if !base.HaveFieldErr(fErr, "phone") {
+				_, err := models.GetUserByPhone(d, params.Phone)
+				if err == nil {
+					fErr = merrors.Append(fErr, errFieldUserAlreadyExists)
+				} else if err != models.ErrUserNotFound {
+					return err
 				}
 			}
 
-			if !skipUserExistsErr {
-				bErr, err = checkUserExistsAddFieldErr(d, bErr, params.Phone, nil, errFieldUserAlreadyExists)
+			if params.ReferrerPhone != "" && !base.HaveFieldErr(fErr, "referrer_phone") {
+				_, err := models.GetUserByPhone(d, params.ReferrerPhone)
 				if err == models.ErrUserNotFound {
-					err = nil
+					fErr = merrors.Append(fErr, errFieldReferrerNotFound)
+				} else if err != nil {
+					return err
 				}
 			}
-			if err != nil {
-				return
-			}
-			if !skipReferrerExistsErr && params.ReferrerPhone != "" {
-				bErr, err = checkUserExistsAddFieldErr(
-					d, bErr, params.ReferrerPhone, models.ErrUserNotFound, errFieldReferrerNotFound,
-				)
-			}
-			if err == nil {
-				err = bErr
-			}
 
-			return
+			return fErr
 		},
 		storageExpire,
 		verificationCodeKeyPattern,
@@ -183,26 +161,20 @@ func VerifyHandlerFactory(
 			_, err = models.UpdateUserStatus(tx, user, models.UserStatusVerified)
 			return
 		},
-		func(resources confflow.ExternalResources, request interface{}, bErr base.FieldsErrorView) (err error) {
+		func(resources confflow.ExternalResources, request interface{}, fErr error) (err error) {
 			params := request.(*VerifyRequest)
 
-			// check logical errors
-			skipUserCheck := false
-			for _, f := range bErr.Fields {
-				if f.Name == "phone" {
-					skipUserCheck = true
+			if !base.HaveFieldErr(fErr, "phone") && params.Phone != "" {
+				_, err = models.GetUserByPhone(d, params.Phone)
+				if err == models.ErrUserNotFound {
+					fErr = merrors.Append(fErr, errFieldUserNotFound)
+					err = nil
 				}
 			}
-
-			if !skipUserCheck {
-				bErr, err = checkUserExistsAddFieldErr(
-					d, bErr, params.Phone, models.ErrUserNotFound, errFieldUserNotFound,
-				)
-			}
 			if err == nil {
-				err = bErr
+				return
 			}
-			return
+			return fErr
 		},
 		func(request interface{}) string {
 			return request.(*VerifyRequest).Code
@@ -253,26 +225,21 @@ func FinishHandlerFactory(
 			user.Status = models.UserStatusActive
 			return models.UpdateUser(tx, user)
 		},
-		func(resources confflow.ExternalResources, request interface{}, bErr base.FieldsErrorView) (err error) {
+		func(resources confflow.ExternalResources, request interface{}, fErr error) (err error) {
 			params := request.(*FinishRequest)
 
 			// check logical errors
-			skipUserCheck := false
-			for _, f := range bErr.Fields {
-				if f.Name == "phone" {
-					skipUserCheck = true
+			if !base.HaveFieldErr(fErr, "phone") && params.Phone != "" {
+				_, err = models.GetUserByPhone(d, params.Phone)
+				if err == models.ErrUserNotFound {
+					fErr = merrors.Append(fErr, errFieldUserNotFound)
+					err = nil
 				}
 			}
-
-			if !skipUserCheck {
-				bErr, err = checkUserExistsAddFieldErr(
-					d, bErr, params.Phone, models.ErrUserNotFound, errFieldUserNotFound,
-				)
-			}
 			if err == nil {
-				err = bErr
+				return
 			}
-			return
+			return fErr
 		},
 		func(params interface{}) string {
 			return params.(*FinishRequest).Token

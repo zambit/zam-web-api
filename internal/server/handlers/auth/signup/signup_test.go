@@ -26,6 +26,7 @@ import (
 	"testing"
 	"time"
 	"git.zam.io/wallet-backend/web-api/internal/services/isc"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 )
 
 const (
@@ -236,16 +237,14 @@ var _ = Describe("Given user signup flow", func() {
 				func(body interface{}, expectErr error) {
 					_, _, err := handler(createSimpleContext(body))
 					Expect(err).To(HaveOccurred())
-					Expect(err).To(Equal(expectErr))
+					Expect(err).To(BeEquivalentTo(expectErr))
 				},
 				table.Entry(
 					"such user already exists",
 					gin.H{
 						"phone": validPhone1,
 					},
-					base.NewErrorsView("wrong parameters").AddField(
-						"body", "phone", "user already exists",
-					),
+					base.NewFieldErr("body", "phone", "user already exists"),
 				),
 				table.Entry(
 					"no such referrer",
@@ -253,18 +252,14 @@ var _ = Describe("Given user signup flow", func() {
 						"phone":          validPhone2,
 						"referrer_phone": validPhone3,
 					},
-					base.NewErrorsView("wrong parameters").AddField(
-						"body", "referrer_phone", "referrer not found",
-					),
+					base.NewFieldErr("body", "referrer_phone", "referrer not found"),
 				),
 				table.Entry(
 					"phone format is invalid",
 					gin.H{
 						"phone": invalidPhone,
 					},
-					base.NewErrorsView("wrong parameters").AddField(
-						"body", "phone", "phone is invalid",
-					),
+					base.NewFieldErr("body", "phone", "phone is invalid"),
 				),
 				table.Entry(
 					"referrer phone format is invalid",
@@ -272,9 +267,7 @@ var _ = Describe("Given user signup flow", func() {
 						"phone":          validPhone3,
 						"referrer_phone": invalidPhone,
 					},
-					base.NewErrorsView("wrong parameters").AddField(
-						"body", "referrer_phone", "phone is invalid",
-					),
+					base.NewFieldErr("body", "referrer_phone", "phone is invalid"),
 				),
 				table.Entry(
 					"phone format is invalid while referrer not found",
@@ -282,10 +275,9 @@ var _ = Describe("Given user signup flow", func() {
 						"phone":          invalidPhone,
 						"referrer_phone": validPhone2,
 					},
-					base.NewErrorsView("wrong parameters").AddField(
-						"body", "phone", "phone is invalid",
-					).AddField(
-						"body", "referrer_phone", "referrer not found",
+					merrors.Append(
+						base.NewFieldErr("body", "phone", "phone is invalid"),
+						base.NewFieldErr("body", "referrer_phone", "referrer not found"),
 					),
 				),
 				table.Entry(
@@ -294,10 +286,9 @@ var _ = Describe("Given user signup flow", func() {
 						"phone":          validPhone1,
 						"referrer_phone": invalidPhone,
 					},
-					base.NewErrorsView("wrong parameters").AddField(
-						"body", "referrer_phone", "phone is invalid",
-					).AddField(
-						"body", "phone", "user already exists",
+					merrors.Append(
+						base.NewFieldErr("body", "referrer_phone", "phone is invalid"),
+						base.NewFieldErr("body", "phone", "user already exists"),
 					),
 				),
 			)
@@ -356,9 +347,7 @@ var _ = Describe("Given user signup flow", func() {
 					"phone":             validPhone1,
 					"verification_code": confirmCode,
 				}))
-				Expect(err).To(Equal(base.NewErrorsView("").AddField(
-					"body", "verification_code", "code is wrong",
-				)))
+				Expect(err).To(Equal(base.NewFieldErr("body", "verification_code", "code is wrong")))
 			})
 		})
 	})
@@ -442,9 +431,7 @@ var _ = Describe("Given user signup flow", func() {
 					"password":              pass1,
 					"password_confirmation": pass1,
 				}))
-				Expect(err).To(Equal(base.NewErrorsView("").AddField(
-					"body", "signup_token", "signup_token is wrong",
-				)))
+				Expect(err).To(Equal(base.NewFieldErr("body", "signup_token", "signup_token is wrong")))
 				Expect(val).To(BeNil())
 			})
 		})
