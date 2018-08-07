@@ -38,8 +38,8 @@ var _ = Describe("user related queries", func() {
 		// prepend table before test to be sure returned user id is actual
 		rows, err := d.Query(
 			fmt.Sprintf(
-				`INSERT INTO users (phone, status_id, registered_at) VALUES 
-					($1, %d, now()), ($2, %d, now()), ($3, %d, now()), ($4, %d, now()) 
+				`INSERT INTO users (phone, status_id, registered_at, created_at) VALUES 
+					($1, %d, now(), now()), ($2, %d, now(), now()), ($3, %d, now(), now()), ($4, %d, now(), now()) 
 				RETURNING id`,
 				activeStatusID, activeStatusID, activeStatusID, pendingStatusID,
 			),
@@ -54,6 +54,31 @@ var _ = Describe("user related queries", func() {
 			Expect(err).NotTo(HaveOccurred())
 			phoneToIDMap[preInsertPhones[i].(string)] = id
 		}
+	})
+
+	Describe("when updating user", func() {
+		ItD("should update status field", func(d *db.Db) {
+			By("selecting previously created user")
+			user, err := GetUserByID(d, fmt.Sprint(phoneToIDMap[validPhone2]))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(user.Status).To(Equal(UserStatusActive))
+			prevCreatedAt := user.CreatedAt
+			Expect(prevCreatedAt.IsZero()).NotTo(Equal(true))
+
+			By("updating user status")
+			user.Status = UserStatusPending
+			err = UpdateUser(d, user)
+			Expect(err).NotTo(HaveOccurred())
+
+			By("ensuring user row")
+			user, err = GetUserByID(d, fmt.Sprint(phoneToIDMap[validPhone2]))
+			Expect(err).NotTo(HaveOccurred())
+			Expect(user.Status).To(Equal(UserStatusPending))
+
+			By("should not change created at field")
+			Expect(user.CreatedAt).To(Equal(prevCreatedAt))
+		})
+
 	})
 
 	Describe("when querying new user", func() {

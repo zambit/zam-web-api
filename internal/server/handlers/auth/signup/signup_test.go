@@ -410,6 +410,7 @@ var _ = Describe("Given user signup flow", func() {
 				u, err := models.GetUserByID(d, fmt.Sprintf("%d", user.ID))
 				Expect(err).NotTo(HaveOccurred())
 				Expect(u.Status).To(Equal(models.UserStatusActive))
+				Expect(u.CreatedAt.IsZero()).NotTo(Equal(true))
 			})
 		})
 

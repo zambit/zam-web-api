@@ -155,11 +155,10 @@ func UpdateUser(tx db.ITx, user User) (err error) {
             phone = $1,
 			password = $2,
             registered_at = $3,
-			created_at = $4,
-			updated_at = $5,
-			status_id = $6
-        WHERE id = $7`,
-		user.Phone, user.Password, user.RegisteredAt, user.CreatedAt, user.UpdatedAt, statusID, user.ID,
+			updated_at = $4,
+			status_id = $5
+        WHERE id = $6`,
+		user.Phone, user.Password, user.RegisteredAt, user.UpdatedAt, statusID, user.ID,
 	)
 	if err != nil {
 		return
@@ -245,7 +244,7 @@ func doUserQuery(tx db.ITx, filter string, forUpdate bool, args ...interface{}) 
 	}
 
 	query := `SELECT
-				u.id, u.phone, u.password, u.registered_at, 
+				u.id, u.phone, u.password, u.registered_at, u.created_at,
 		     	u.referrer_id, u.status_id, us.name, ru.phone 
          FROM users u 
 		 LEFT JOIN users ru ON u.referrer_id = ru.id
@@ -258,6 +257,7 @@ func doUserQuery(tx db.ITx, filter string, forUpdate bool, args ...interface{}) 
 		&user.Phone,
 		&user.Password,
 		&user.RegisteredAt,
+		&user.CreatedAt,
 		&user.ReferrerID,
 		&user.StatusID,
 		&user.Status,
