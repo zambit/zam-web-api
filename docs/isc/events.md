@@ -17,10 +17,12 @@ Params:
 1) `user_id`
     * Type: string
     * Description: new user identifier
+
 2) `user_phone`
     * Type: string
     * Format: phone_number
     * Description: user phone
+
 3) `verification_code`
     * Type: string
     * Description: verification code which should be sent by user on next `../signup/verify` request
@@ -34,6 +36,11 @@ Params:
 1) `user_id`
     * Type: string
     * Description: affected user identifier
+    
+2) `user_phone`
+    * Type: string
+    * Format: phone_number
+    * Description: user phone
 
 ## Password recovery events
 
@@ -48,10 +55,12 @@ Params:
 1) `user_id`
     * Type: string
     * Description: affected user identifier
+
 2) `user_phone`
     * Type: string
     * Format: phone_number
     * Description: user phone
+
 3) `recovery_code`
     * Type: string
     * Description: verification code which should be sent by user on next `../recovery/verify` request
@@ -65,3 +74,8 @@ Params:
 1) `user_id`
     * Type: string
     * Description: affected user identifier
+
+2) `user_phone`
+    * Type: string
+    * Format: phone_number
+    * Description: user phone

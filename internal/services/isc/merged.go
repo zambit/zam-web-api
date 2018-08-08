@@ -6,8 +6,8 @@ import (
 
 // mergedNotificator wraps event notificator and old notificator sending notification simultaneously
 type mergedNotificator struct {
-	eventNotificator     IEventNotificator
-	oldNotificator notifications.ISender
+	eventNotificator IEventNotificator
+	oldNotificator   notifications.ISender
 }
 
 // NewMerged merged notificator
@@ -18,9 +18,9 @@ func NewMerged(eventNotificator IEventNotificator, oldNotificator notifications.
 func (n *mergedNotificator) RegistrationVerificationRequested(userID, userPhone, verificationCode string) error {
 	err := n.oldNotificator.Send(
 		notifications.ActionRegistrationConfirmationRequested,
-		map[string]interface{} {
+		map[string]interface{}{
 			"phone": userPhone,
-			"code": verificationCode,
+			"code":  verificationCode,
 		},
 		notifications.Urgent,
 	)
@@ -30,10 +30,10 @@ func (n *mergedNotificator) RegistrationVerificationRequested(userID, userPhone,
 	return n.eventNotificator.RegistrationVerificationRequested(userID, userPhone, verificationCode)
 }
 
-func (n *mergedNotificator) RegistrationCompleted(userID string) error {
+func (n *mergedNotificator) RegistrationCompleted(userID, userPhone string) error {
 	err := n.oldNotificator.Send(
 		notifications.ActionRegistrationCompleted,
-		map[string]interface{} {
+		map[string]interface{}{
 			"id": userID,
 		},
 		notifications.Urgent,
@@ -41,15 +41,15 @@ func (n *mergedNotificator) RegistrationCompleted(userID string) error {
 	if err != nil {
 		return err
 	}
-	return n.eventNotificator.RegistrationCompleted(userID)
+	return n.eventNotificator.RegistrationCompleted(userID, userPhone)
 }
 
 func (n *mergedNotificator) PasswordRecoveryVerificationRequested(userID, userPhone, verificationCode string) error {
 	err := n.oldNotificator.Send(
 		notifications.ActionPasswordRecoveryConfirmationRequested,
-		map[string]interface{} {
+		map[string]interface{}{
 			"phone": userPhone,
-			"code": verificationCode,
+			"code":  verificationCode,
 		},
 		notifications.Urgent,
 	)
@@ -59,10 +59,10 @@ func (n *mergedNotificator) PasswordRecoveryVerificationRequested(userID, userPh
 	return n.eventNotificator.PasswordRecoveryVerificationRequested(userID, userPhone, verificationCode)
 }
 
-func (n *mergedNotificator) PasswordRecoveryCompleted(userID string) error {
+func (n *mergedNotificator) PasswordRecoveryCompleted(userID, userPhone string) error {
 	err := n.oldNotificator.Send(
 		notifications.ActionPasswordRecoveryCompleted,
-		map[string]interface{} {
+		map[string]interface{}{
 			"id": userID,
 		},
 		notifications.Urgent,
@@ -70,5 +70,5 @@ func (n *mergedNotificator) PasswordRecoveryCompleted(userID string) error {
 	if err != nil {
 		return err
 	}
-	return n.eventNotificator.PasswordRecoveryCompleted(userID)
+	return n.eventNotificator.PasswordRecoveryCompleted(userID, userPhone)
 }

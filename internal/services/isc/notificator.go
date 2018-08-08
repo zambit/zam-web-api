@@ -6,11 +6,11 @@ type IEventNotificator interface {
 	RegistrationVerificationRequested(userID, userPhone, verificationCode string) error
 
 	// RegistrationCompleted emitted when user completes registration process
-	RegistrationCompleted(userID string) error
+	RegistrationCompleted(userID, userPhone string) error
 
 	// RegistrationVerificationRequested emitted when user should verify password recovery
 	PasswordRecoveryVerificationRequested(userID, userPhone, verificationCode string) error
 
 	// RegistrationCompleted emitted when user completes password recovery
-	PasswordRecoveryCompleted(userID string) error
+	PasswordRecoveryCompleted(userID, userPhone string) error
 }

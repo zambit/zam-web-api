@@ -401,7 +401,7 @@ var _ = Describe("Given user signup flow", func() {
 					}, time.Minute,
 				).Return(sessions.Token(authToken), nil)
 				storage.On("Delete", "user:"+validPhone1+":signup:token").Return(nil)
-				notifier.On("RegistrationCompleted", fmt.Sprint(user.ID)).Return(nil)
+				notifier.On("RegistrationCompleted", fmt.Sprint(user.ID), validPhone1).Return(nil)
 			})
 
 			ItD("should return ok because token is valid", func(d *db.Db, user models.User, handler base.HandlerFunc) {

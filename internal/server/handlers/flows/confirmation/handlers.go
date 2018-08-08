@@ -4,18 +4,18 @@ import (
 	"fmt"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
-	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"github.com/gin-gonic/gin"
 	"net/http"
 	"time"
 )
 
 type ExternalResources struct {
-	Database    *db.Db
-	Storage     nosql.IStorage
-	Generator   notifications.IGenerator
+	Database  *db.Db
+	Storage   nosql.IStorage
+	Generator notifications.IGenerator
 }
 
 type State string
@@ -28,7 +28,7 @@ const (
 
 var (
 	errFieldWrongCode = base.NewFieldErr("body", "verification_code", "code is wrong")
-	errNotAllowed = base.ErrorView{
+	errNotAllowed     = base.ErrorView{
 		Code:    http.StatusBadRequest,
 		Message: "such action not allowed",
 	}
@@ -51,7 +51,7 @@ func StartHandlerFactory(
 	postValidateFunc PostValidateFieldsFunc,
 	verifCodeExpire time.Duration,
 	verifCodeKeyPattern string,
-	verifEventSender func(userID, userPhone, code string) error,
+	verifEventSender func(user models.User, code string) error,
 	finishTokenKeyPattern string,
 ) base.HandlerFunc {
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
@@ -93,7 +93,7 @@ func StartHandlerFactory(
 			}
 
 			// send confirmation code
-			err = verifEventSender(fmt.Sprint(user.ID), string(user.Phone), code)
+			err = verifEventSender(user, code)
 
 			// sadly, but whole transaction should be rollbacked if notification sent fails
 			if err != nil {
@@ -194,7 +194,7 @@ func FinishHandlerFactory(
 	postValidateFunc PostValidateFieldsFunc,
 	getTokenFromParams func(interface{}) string,
 	respFactory func(tx db.ITx, user models.User) (interface{}, error),
-	finishEventSender func(userID string) error,
+	finishEventSender func(user models.User) error,
 	finishTokenKeyPattern string,
 	tokenFieldName string,
 ) base.HandlerFunc {
@@ -245,7 +245,7 @@ func FinishHandlerFactory(
 
 			if finishEventSender != nil {
 				// notify about finish
-				err = finishEventSender(fmt.Sprint(user.ID))
+				err = finishEventSender(user)
 				if err != nil {
 					return
 				}

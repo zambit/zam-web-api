@@ -98,8 +98,8 @@ func StartHandlerFactory(
 		},
 		storageExpire,
 		verificationCodeKeyPattern,
-		func(userID, userPhone, code string) error {
-			return notifier.PasswordRecoveryVerificationRequested(userID, userPhone, code)
+		func(user models.User, code string) error {
+			return notifier.PasswordRecoveryVerificationRequested(fmt.Sprint(user.ID), string(user.Phone), code)
 		},
 		tokenKeyPattern,
 	)
@@ -186,8 +186,8 @@ func FinishHandlerFactory(d *db.Db, storage nosql.IStorage, notifier isc.IEventN
 		func(tx db.ITx, user models.User) (resp interface{}, err error) {
 			return
 		},
-		func(userID string) error {
-			return notifier.RegistrationCompleted(userID)
+		func(user models.User) error {
+			return notifier.PasswordRecoveryCompleted(fmt.Sprint(user.ID), string(user.Phone))
 		},
 		tokenKeyPattern,
 		"recovery_token",

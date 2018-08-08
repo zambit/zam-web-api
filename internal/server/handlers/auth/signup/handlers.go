@@ -126,8 +126,8 @@ func StartHandlerFactory(
 		},
 		storageExpire,
 		verificationCodeKeyPattern,
-		func(userID, userPhone, code string) error {
-			return notifier.RegistrationVerificationRequested(userID, userPhone, code)
+		func(user models.User, code string) error {
+			return notifier.RegistrationVerificationRequested(fmt.Sprint(user.ID), string(user.Phone), code)
 		},
 		signupTokenKeyPatten,
 	)
@@ -260,8 +260,8 @@ func FinishHandlerFactory(
 			}
 			return
 		},
-		func(userID string) error {
-			return notifier.RegistrationCompleted(userID)
+		func(user models.User) error {
+			return notifier.RegistrationCompleted(fmt.Sprint(user.ID), string(user.Phone))
 		},
 		signupTokenKeyPatten,
 		"signup_token",

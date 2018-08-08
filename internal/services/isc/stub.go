@@ -23,21 +23,27 @@ func (n stubNotificator) RegistrationVerificationRequested(userID, userPhone, ve
 	return nil
 }
 
-func (n stubNotificator) RegistrationCompleted(userID string) error {
-	n.logger.WithField("user_id", userID).Info("user registration completed")
+func (n stubNotificator) RegistrationCompleted(userID, userPhone string) error {
+	n.logger.WithFields(logrus.Fields{
+		"user_id":    userID,
+		"user_phone": userPhone,
+	}).Info("user registration completed")
 	return nil
 }
 
 func (n stubNotificator) PasswordRecoveryVerificationRequested(userID, userPhone, verificationCode string) error {
 	n.logger.WithFields(logrus.Fields{
-		"user_id":           userID,
-		"user_phone":        userPhone,
+		"user_id":       userID,
+		"user_phone":    userPhone,
 		"recovery_code": verificationCode,
 	}).Info("user password recovery verification required")
 	return nil
 }
 
-func (n stubNotificator) PasswordRecoveryCompleted(userID string) error {
-	n.logger.WithField("user_id", userID).Info("user password recovery completed")
+func (n stubNotificator) PasswordRecoveryCompleted(userID, userPhone string) error {
+	n.logger.WithFields(logrus.Fields{
+		"user_id":    userID,
+		"user_phone": userPhone,
+	}).Info("user password recovery completed")
 	return nil
 }

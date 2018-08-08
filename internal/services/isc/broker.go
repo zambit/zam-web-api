@@ -27,32 +27,34 @@ func New(b broker.IBroker) IEventNotificator {
 // RegistrationVerificationRequested
 func (n notificator) RegistrationVerificationRequested(userID, userPhone, verificationCode string) error {
 	return n.b.Publish(identifier(actionRegistrationVerificationRequired, userID), pl{
-		"user_id": userID,
-		"user_phone": userPhone,
+		"user_id":           userID,
+		"user_phone":        userPhone,
 		"verification_code": verificationCode,
 	})
 }
 
 // RegistrationCompleted
-func (n notificator) RegistrationCompleted(userID string) error {
+func (n notificator) RegistrationCompleted(userID, userPhone string) error {
 	return n.b.Publish(identifier(actionRegistrationCompleted, userID), pl{
-		"user_id": userID,
+		"user_id":    userID,
+		"user_phone": userPhone,
 	})
 }
 
 // PasswordRecoveryVerificationRequested
 func (n notificator) PasswordRecoveryVerificationRequested(userID, userPhone, verificationCode string) error {
 	return n.b.Publish(identifier(actionPasswordRecoveryVerificationRequired, userID), pl{
-		"user_id": userID,
-		"user_phone": userPhone,
+		"user_id":       userID,
+		"user_phone":    userPhone,
 		"recovery_code": verificationCode,
 	})
 }
 
 // PasswordRecoveryCompleted
-func (n notificator) PasswordRecoveryCompleted(userID string) error {
+func (n notificator) PasswordRecoveryCompleted(userID, userPhone string) error {
 	return n.b.Publish(identifier(actionPasswordRecoveryCompleted, userID), pl{
-		"user_id": userID,
+		"user_id":    userID,
+		"user_phone": userPhone,
 	})
 }
 
