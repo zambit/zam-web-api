@@ -2,23 +2,23 @@ package signup
 
 import (
 	"fmt"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models"
 	"git.zam.io/wallet-backend/web-api/internal/models/types"
-	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	confflow "git.zam.io/wallet-backend/web-api/internal/server/handlers/flows/confirmation"
-	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
+	"git.zam.io/wallet-backend/web-api/internal/services/isc"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	"time"
-	"git.zam.io/wallet-backend/web-api/internal/services/isc"
-	"git.zam.io/wallet-backend/common/pkg/merrors"
 )
 
 var (
 	errFieldUserAlreadyExists = base.NewFieldErr("body", "phone", "user already exists")
-	errFieldUserNotFound = base.NewFieldErr("body", "phone", "user not found")
-	errFieldReferrerNotFound = base.NewFieldErr("body", "referrer_phone", "referrer not found")
+	errFieldUserNotFound      = base.NewFieldErr("body", "phone", "user not found")
+	errFieldReferrerNotFound  = base.NewFieldErr("body", "referrer_phone", "referrer not found")
 )
 
 const (
@@ -51,9 +51,9 @@ func StartHandlerFactory(
 	storageExpire time.Duration,
 ) base.HandlerFunc {
 	resources := confflow.ExternalResources{
-		Database:    d,
-		Storage:     storage,
-		Generator:   generator,
+		Database:  d,
+		Storage:   storage,
+		Generator: generator,
 	}
 	return confflow.StartHandlerFactory(
 		resources,
@@ -171,7 +171,7 @@ func VerifyHandlerFactory(
 					err = nil
 				}
 			}
-			if err == nil {
+			if err != nil {
 				return
 			}
 			return fErr
@@ -199,8 +199,8 @@ func FinishHandlerFactory(
 	authExpiration time.Duration,
 ) base.HandlerFunc {
 	resources := confflow.ExternalResources{
-		Database:    d,
-		Storage:     storage,
+		Database: d,
+		Storage:  storage,
 	}
 
 	return confflow.FinishHandlerFactory(
@@ -236,7 +236,7 @@ func FinishHandlerFactory(
 					err = nil
 				}
 			}
-			if err == nil {
+			if err != nil {
 				return
 			}
 			return fErr

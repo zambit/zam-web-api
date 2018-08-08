@@ -2,17 +2,17 @@ package recovery
 
 import (
 	"fmt"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models"
 	"git.zam.io/wallet-backend/web-api/internal/models/types"
-	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	confflow "git.zam.io/wallet-backend/web-api/internal/server/handlers/flows/confirmation"
-	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
+	"git.zam.io/wallet-backend/web-api/internal/services/isc"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
+	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	"github.com/pkg/errors"
 	"time"
-	"git.zam.io/wallet-backend/web-api/internal/services/isc"
-	"git.zam.io/wallet-backend/common/pkg/merrors"
 )
 
 var (
@@ -75,9 +75,9 @@ func StartHandlerFactory(
 	storageExpire time.Duration,
 ) base.HandlerFunc {
 	resources := confflow.ExternalResources{
-		Database:    d,
-		Storage:     storage,
-		Generator:   generator,
+		Database:  d,
+		Storage:   storage,
+		Generator: generator,
 	}
 	return confflow.StartHandlerFactory(
 		resources,
@@ -152,8 +152,8 @@ func VerifyHandlerFactory(
 // FinishHandlerFactory
 func FinishHandlerFactory(d *db.Db, storage nosql.IStorage, notifier isc.IEventNotificator) base.HandlerFunc {
 	resources := confflow.ExternalResources{
-		Database:    d,
-		Storage:     storage,
+		Database: d,
+		Storage:  storage,
 	}
 
 	return confflow.FinishHandlerFactory(
@@ -202,7 +202,7 @@ func postValidateFailedParams(d *db.Db, fErr error, phone string) (err error) {
 			fErr = merrors.Append(fErr, errFieldUserNotFound)
 		}
 	}
-	if err == nil {
+	if err != nil {
 		return
 	}
 	return fErr

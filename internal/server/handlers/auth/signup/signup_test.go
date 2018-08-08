@@ -4,17 +4,19 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 	"git.zam.io/wallet-backend/web-api/db"
 	. "git.zam.io/wallet-backend/web-api/fixtures"
 	"git.zam.io/wallet-backend/web-api/fixtures/database"
 	"git.zam.io/wallet-backend/web-api/fixtures/database/migrations"
 	"git.zam.io/wallet-backend/web-api/internal/models"
+	"git.zam.io/wallet-backend/web-api/internal/services/isc"
+	iscmock "git.zam.io/wallet-backend/web-api/internal/services/isc/mocks"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	notifmock "git.zam.io/wallet-backend/web-api/internal/services/notifications/mocks"
 	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	nosqlmock "git.zam.io/wallet-backend/web-api/pkg/services/nosql/mocks"
-	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
-	notifmock "git.zam.io/wallet-backend/web-api/internal/services/notifications/mocks"
-	iscmock "git.zam.io/wallet-backend/web-api/internal/services/isc/mocks"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	sessmock "git.zam.io/wallet-backend/web-api/pkg/services/sessions/mocks"
 	"github.com/gin-gonic/gin"
@@ -25,22 +27,23 @@ import (
 	"net/http"
 	"testing"
 	"time"
-	"git.zam.io/wallet-backend/web-api/internal/services/isc"
-	"git.zam.io/wallet-backend/common/pkg/merrors"
 )
 
 const (
-	invalidPhone = "+7(999)000-00-000"
-	validPhone1  = "+79871111111"
-	validPhone2  = "+79871111112"
-	validPhone3  = "+79871111113"
-	pass1        = "123451"
-	pass2        = "543211"
-	confirmCode  = "CONFIRMATIONCODE"
-	confirmCode2 = "222222222CONFIRMATIONCODE2222222222"
-	signUpToken  = "SIGNUPTOKENTOKENTOKEN"
-	signUpToken2 = "2222SIGNUPTOKENTOKENTOKEN222"
-	authToken    = "AUTH TOKEN"
+	invalidPhone     = "+7(999)000-00-000"
+	validPhone1      = "+79871111111"
+	validPhone2      = "+79871111112"
+	validPhone3      = "+79871111113"
+	pass1            = "123451"
+	pass2            = "543211"
+	invalidPass1     = "1234"
+	invalidPass2     = "1234________________---==-!@#(!)@"
+	confirmCode      = "CONFIRMATIONCODE"
+	confirmCode2     = "222222222CONFIRMATIONCODE2222222222"
+	wrongConfirmCode = "code"
+	signUpToken      = "SIGNUPTOKENTOKENTOKEN"
+	signUpToken2     = "2222SIGNUPTOKENTOKENTOKEN222"
+	authToken        = "AUTH TOKEN"
 )
 
 func TestSignUpHandlers(t *testing.T) {
@@ -342,12 +345,20 @@ var _ = Describe("Given user signup flow", func() {
 				storage.On("Get", "user:"+validPhone1+":signup:code").Return(confirmCode2, nil)
 			})
 
-			ItD("should return verification code error", func(d *db.Db, handler base.HandlerFunc, user models.User) {
+			ItD("should fail because verification code is't long enough", func(d *db.Db, handler base.HandlerFunc, user models.User) {
 				_, _, err := handler(createSimpleContext(map[string]interface{}{
 					"phone":             validPhone1,
 					"verification_code": confirmCode,
 				}))
 				Expect(err).To(Equal(base.NewFieldErr("body", "verification_code", "code is wrong")))
+			})
+
+			ItD("should return verification code error", func(d *db.Db, handler base.HandlerFunc, user models.User) {
+				_, _, err := handler(createSimpleContext(map[string]interface{}{
+					"phone":             validPhone1,
+					"verification_code": wrongConfirmCode,
+				}))
+				Expect(err).To(Equal(base.NewFieldErr("body", "verification_code", "field value must be at least 6 items long")))
 			})
 		})
 	})
@@ -412,6 +423,54 @@ var _ = Describe("Given user signup flow", func() {
 				Expect(u.Status).To(Equal(models.UserStatusActive))
 				Expect(u.CreatedAt.IsZero()).NotTo(Equal(true))
 			})
+
+			ItD("should fail because password confirmation is wrong", func(handler base.HandlerFunc) {
+				val, _, err := handler(createSimpleContext(gin.H{
+					"phone":                 validPhone1,
+					"signup_token":          signUpToken,
+					"password":              pass1,
+					"password_confirmation": pass2,
+				}))
+				Expect(err).To(HaveOccurred())
+				Expect(val).To(BeNil())
+
+				Expect(err).To(Equal(
+					base.NewFieldErr(
+						"body", "password_confirmation",
+						`this field must be equal to "password"`,
+					),
+				))
+			})
+
+			ItD("should fail because password does't 6 char long", func(handler base.HandlerFunc) {
+				val, _, err := handler(createSimpleContext(gin.H{
+					"phone":                 validPhone1,
+					"signup_token":          signUpToken,
+					"password":              invalidPass1,
+					"password_confirmation": invalidPass1,
+				}))
+				Expect(err).To(HaveOccurred())
+				Expect(val).To(BeNil())
+
+				Expect(err).To(Equal(
+					base.NewFieldErr("body", "password", `field value must be at least 6 items long`),
+				))
+			})
+
+			ItD("should fail because password contains wrong chars", func(handler base.HandlerFunc) {
+				val, _, err := handler(createSimpleContext(gin.H{
+					"phone":                 validPhone1,
+					"signup_token":          signUpToken,
+					"password":              invalidPass2,
+					"password_confirmation": invalidPass2,
+				}))
+				Expect(err).To(HaveOccurred())
+				Expect(val).To(BeNil())
+
+				Expect(err).To(Equal(
+					base.NewFieldErr("body", "password", `only latin-alphabet letters or digits allowed`),
+				))
+			})
 		})
 
 		Context("when signup token is wrong", func() {
@@ -425,7 +484,7 @@ var _ = Describe("Given user signup flow", func() {
 				storage.On("Get", "user:"+validPhone1+":signup:token").Return(signUpToken, nil)
 			})
 
-			ItD("should return ok because token is valid", func(d *db.Db, user models.User, handler base.HandlerFunc) {
+			ItD("should fail because of wrong token", func(d *db.Db, user models.User, handler base.HandlerFunc) {
 				val, _, err := handler(createSimpleContext(gin.H{
 					"phone":                 validPhone1,
 					"signup_token":          signUpToken2,
