@@ -1,17 +1,20 @@
 package providers
 
 import (
-	"github.com/sirupsen/logrus"
-	"github.com/gin-gonic/gin"
 	"github.com/gin-contrib/cors"
+	"github.com/gin-gonic/gin"
+	"github.com/sirupsen/logrus"
 )
 
 // GinEngine
 func GinEngine(logger logrus.FieldLogger) *gin.Engine {
 	corsCfg := cors.DefaultConfig()
-	corsCfg.AllowMethods = append(corsCfg.AllowMethods, "DELETE")
+	corsCfg.AllowMethods = append(corsCfg.AllowMethods, "DELETE", "PATCH")
 	corsCfg.AllowAllOrigins = true
-	corsCfg.AllowHeaders = []string{"*"}
+	corsCfg.AllowHeaders = append(
+		corsCfg.AllowHeaders, "Authorization", "Accept-Encoding", "X-CSRF-Token", "Accept",
+	)
+	corsCfg.AllowCredentials = true
 
 	engine := gin.New()
 	engine.Use(
