@@ -13,19 +13,19 @@ type requestBody struct {
 	Text string `json:"text"`
 }
 
-// backend
-type backend struct {
+// transport
+type transport struct {
 	client  http.Client
 	hookUrl string
 }
 
-// New creates Slack backend using slack "Incoming WebHooks"
-func New(hookUrl string) *backend {
-	return &backend{hookUrl: hookUrl}
+// New creates Slack transport using slack "Incoming WebHooks"
+func New(hookUrl string) *transport {
+	return &transport{hookUrl: hookUrl}
 }
 
 // Send notification using slack messages-hook
-func (b *backend) Send(recipient string, body string) error {
+func (b *transport) Send(recipient string, body string) error {
 	bodyDst := bytes.NewBuffer([]byte{})
 	reqBody := requestBody{Text: fmt.Sprintf("Recipient %s\n%s", recipient, body)}
 	encoder := json.NewEncoder(bodyDst)

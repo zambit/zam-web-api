@@ -3,7 +3,7 @@ package twilio
 import (
 	"encoding/json"
 	"fmt"
-	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext"
+	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -17,8 +17,8 @@ type backend struct {
 	client http.Client
 }
 
-// New creates new twillo backend in form https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}
-func New(uri string) stext.IBackend {
+// New creates new twillo transport in form https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}
+func New(uri string) notifications.ITransport {
 	parsed, err := url.Parse(uri)
 	if err != nil {
 		panic(err)

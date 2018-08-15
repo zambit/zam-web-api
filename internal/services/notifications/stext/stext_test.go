@@ -2,7 +2,7 @@ package stext
 
 import (
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
-	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext/mocks"
+	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/mocks"
 	. "github.com/onsi/ginkgo"
 	. "github.com/onsi/gomega"
 	"testing"
@@ -51,7 +51,7 @@ var _ = Describe("testing simple text notificator", func() {
 			var notificator *sender
 
 			BeforeEach(func() {
-				backend := mocks.IBackend{}
+				backend := mocks.ITransport{}
 				notificator = &sender{backend: &backend}
 				backend.On("Send", testRecipient, "Your ZamZam verification code - 556611").Return(nil)
 			})
@@ -106,7 +106,7 @@ var _ = Describe("testing simple text notificator", func() {
 			var notificator *sender
 
 			BeforeEach(func() {
-				backend := mocks.IBackend{}
+				backend := mocks.ITransport{}
 				notificator = &sender{backend: &backend}
 				backend.On("Send", testRecipient, "Your password recovery code - 556611").Return(nil)
 			})

@@ -48,6 +48,19 @@ type GeneratorScheme struct {
 	CodeAlphabet string
 }
 
+// NotificatorURL specifies notificator URI which is used to determine actual implementation.
+type NotificatorScheme struct {
+	// Possible schemes (empty value will cause to simply log records using log configuration):
+	//
+	// 	 https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone} - using twilio sms service
+	//
+	//   https://hooks.slack.com/services/{hook_part} - using slack "https://hooks.slack.com/services/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"
+	//
+	//   file://{path_to_file} - using file to log all notifications records. File will be created, if not exists.
+	// Make sure you have enough rights!
+	URL string
+}
+
 // Scheme web-server params
 type Scheme struct {
 	// Host to listen on such address, accept both ip4 and ip6 addresses
@@ -71,15 +84,6 @@ type Scheme struct {
 	// Generator
 	Generator GeneratorScheme
 
-	// NotificatorURL specifies notificator URI which is used to determine actual implementation.
-	//
-	// Possible schemes (empty value will cause to simply log records using log configuration):
-	//
-	// 	 https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone} - using twilio sms service
-	//
-	//   https://hooks.slack.com/services/{hook_part} - using slack "https://hooks.slack.com/services/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"
-	//
-	//   file://{path_to_file} - using file to log all notifications records. File will be created, if not exists.
-	// Make sure you have enough rights!
-	NotificatorURL string
+	// Notificator
+	Notificator NotificatorScheme
 }

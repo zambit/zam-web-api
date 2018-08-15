@@ -1,9 +1,8 @@
-package factory
+package providers
 
 import (
 	"fmt"
-	old_notifications "git.zam.io/wallet-backend/web-api/internal/services/notifications"
-	"git.zam.io/wallet-backend/web-api/internal/services/notifications/stext"
+	"git.zam.io/wallet-backend/web-api/config/server"
 	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
 	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/file"
 	"git.zam.io/wallet-backend/web-api/pkg/services/notifications/slack"
@@ -12,8 +11,9 @@ import (
 	"strings"
 )
 
-// New creates backend guessing concrete type from URI, panic if guess is failed
-func New(uri string) old_notifications.ISender {
+// NotificationsTransport
+func NotificationsTransport(cfg server.NotificatorScheme) (notifications.ITransport, error) {
+	uri := cfg.URL
 	parsed, err := url.Parse(uri)
 	if err != nil {
 		panic(err)
@@ -33,8 +33,8 @@ func New(uri string) old_notifications.ISender {
 	}
 
 	if transport == nil {
-		panic(fmt.Errorf("unsupported simple-text transport specified with %s", uri))
+		return nil, fmt.Errorf("NotificationsTransport: failed to create transport due to wrong uri: %s", uri)
 	}
 
-	return stext.New(transport)
+	return transport, nil
 }

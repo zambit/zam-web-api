@@ -2,22 +2,23 @@ package stext
 
 import (
 	"fmt"
-	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	old_notifications "git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
 	"github.com/chonla/format"
 	"github.com/pkg/errors"
 )
 
 // sender renders notification in simple-text form and send it to a recipient
 type sender struct {
-	backend IBackend
+	backend notifications.ITransport
 }
 
-func New(backend IBackend) notifications.ISender {
+func New(backend notifications.ITransport) old_notifications.ISender {
 	return &sender{backend: backend}
 }
 
 // Send renders and sends notification using backend
-func (s *sender) Send(action string, data interface{}, level notifications.ImportanceLevel) error {
+func (s *sender) Send(action string, data interface{}, level old_notifications.ImportanceLevel) error {
 	template, ok := templates[action]
 	if !ok {
 		// skip sending if no template provided
@@ -43,8 +44,8 @@ func (s *sender) Send(action string, data interface{}, level notifications.Impor
 
 // templates
 var templates = map[string]string{
-	notifications.ActionRegistrationConfirmationRequested:     "Your ZamZam verification code - %<code>s",
-	notifications.ActionPasswordRecoveryConfirmationRequested: "Your password recovery code - %<code>s",
+	old_notifications.ActionRegistrationConfirmationRequested:     "Your ZamZam verification code - %<code>s",
+	old_notifications.ActionPasswordRecoveryConfirmationRequested: "Your password recovery code - %<code>s",
 }
 
 //
@@ -64,6 +65,6 @@ func confirmationDataParser(data interface{}) (string, error) {
 
 // data parsers
 var parsers = map[string]func(data interface{}) (string, error){
-	notifications.ActionRegistrationConfirmationRequested:     confirmationDataParser,
-	notifications.ActionPasswordRecoveryConfirmationRequested: confirmationDataParser,
+	old_notifications.ActionRegistrationConfirmationRequested:     confirmationDataParser,
+	old_notifications.ActionPasswordRecoveryConfirmationRequested: confirmationDataParser,
 }

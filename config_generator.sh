@@ -11,7 +11,8 @@ server:
     jwt:
         secret: '$STAGING_SECRET'
         method: HS256
-    notificatorurl: '$NOTIFICATIONS_URL'
+    notificator:
+        url: '$NOTIFICATIONS_URL'
 
 isc:
     brokeruri: '$BROKER_URI'
