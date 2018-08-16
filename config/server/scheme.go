@@ -61,6 +61,15 @@ type NotificatorScheme struct {
 	URL string
 }
 
+// DiscoveryScheme holds settings which describes access to internal service api
+type DiscoveryScheme struct {
+	// Host
+	Host string
+
+	// AccessToken which wallet-api requires
+	AccessToken string
+}
+
 // Scheme web-server params
 type Scheme struct {
 	// Host to listen on such address, accept both ip4 and ip6 addresses
@@ -86,4 +95,7 @@ type Scheme struct {
 
 	// Notificator
 	Notificator NotificatorScheme
+
+	// WalletApiDiscovery holds wallet-api discovery settings
+	WalletApiDiscovery DiscoveryScheme
 }

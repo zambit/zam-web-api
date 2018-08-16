@@ -1,6 +1,11 @@
 package auth
 
 import (
+	"encoding/json"
+	"fmt"
+	"git.zam.io/wallet-backend/common/pkg/merrors"
+	"git.zam.io/wallet-backend/common/pkg/types/decimal"
+	"git.zam.io/wallet-backend/web-api/config/server"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models"
 	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
@@ -8,6 +13,8 @@ import (
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
+	"net/http"
+	"net/url"
 	"time"
 )
 
@@ -105,12 +112,94 @@ func RefreshTokenHandlerFactory(
 // CheckHandlerFactory returns handler which returns user auth checking endpoint
 func CheckHandlerFactory() base.HandlerFunc {
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
-		userData := middlewares.GetUserDataFromContext(c)
-		if userData == nil {
-			err = errors.New("auth passed but no user data attached")
+		phone, err := getUserPhone(c)
+		if err != nil {
 			return
 		}
-		resp = UserPhoneResponse{Phone: userData["phone"].(string)}
+		resp = UserPhoneResponse{Phone: phone}
 		return
 	}
+}
+
+// StatFactory returns user statistic part of which is gathered from wallet api.
+func StatFactory(d *db.Db, config server.Scheme) base.HandlerFunc {
+	type userStatResponse struct {
+		Result bool `json:"result"`
+		Data   struct {
+			Count        int                      `json:"count"`
+			TotalBalance map[string]*decimal.View `json:"total_balance"`
+		} `json:"data"`
+		Errors []base.ErrorView `json:"errors"`
+	}
+	const userStatPath = "/api/v1/internal/user_stat"
+
+	return func(c *gin.Context) (resp interface{}, code int, err error) {
+		// bind query params, ignore error
+		params := UserMeRequest{}
+		c.BindQuery(&params)
+		if params.Convert == "" {
+			params.Convert = "usd"
+		}
+
+		phone, err := getUserPhone(c)
+		if err != nil {
+			return
+		}
+
+		//
+		user, err := models.GetUserByPhone(d, phone)
+		if err != nil {
+			return
+		}
+
+		// do wallet-api stat request
+		u, err := url.Parse(config.WalletApiDiscovery.Host)
+		if err != nil {
+			err = errors.Wrap(err, "handlers: user: wallet-api host is invalid")
+			return
+		}
+		u.Path = userStatPath
+		u.RawQuery = fmt.Sprintf("user_phone=%s&convert=%s", url.QueryEscape(phone), params.Convert)
+
+		req, _ := http.NewRequest("GET", u.String(), nil)
+		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", config.WalletApiDiscovery.AccessToken))
+		res, err := http.DefaultClient.Do(req)
+		if err != nil {
+			err = errors.Wrap(err, "handlers: user: wallet-api request failed")
+			return
+		}
+
+		respBody := userStatResponse{}
+		err = json.NewDecoder(res.Body).Decode(&respBody)
+		if err != nil {
+			err = errors.Wrap(err, "handlers: user: wallet-api response decode failed")
+			return
+		}
+		if !respBody.Result {
+			for _, e := range respBody.Errors {
+				err = merrors.Append(err, e)
+			}
+			return
+		}
+
+		// prepare response
+		resp = UserResponse{
+			ID:           fmt.Sprint(user.ID),
+			Phone:        phone,
+			Status:       string(user.Status),
+			RegisteredAt: *user.RegisteredAt,
+			Wallets:      respBody.Data,
+		}
+
+		return
+	}
+}
+
+// utils
+func getUserPhone(c *gin.Context) (string, error) {
+	userData := middlewares.GetUserDataFromContext(c)
+	if userData == nil {
+		return "", errors.New("auth passed but no user data attached")
+	}
+	return userData["phone"].(string), nil
 }

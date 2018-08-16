@@ -13,3 +13,8 @@ type UserSigninRequest struct {
 	Phone    string `validate:"required,min=5" json:"phone"`
 	Password string `validate:"required,min=5,eqfield=Password" json:"password"`
 }
+
+// UserMeRequest
+type UserMeRequest struct {
+	Convert string `form:"convert"`
+}

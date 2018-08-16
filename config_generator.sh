@@ -13,7 +13,9 @@ server:
         method: HS256
     notificator:
         url: '$NOTIFICATIONS_URL'
-
+    walletapidiscovery:
+        host: '$WALLET_API_HOST'
+        accesstoken: '$WALLET_API_TOKEN'
 isc:
     brokeruri: '$BROKER_URI'
     statsenabled: true
