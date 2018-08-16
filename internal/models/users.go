@@ -1,7 +1,7 @@
 package models
 
 import (
-	"git.zam.io/wallet-backend/web-api/internal/models/types"
+	"git.zam.io/wallet-backend/common/pkg/types"
 	"time"
 )
 

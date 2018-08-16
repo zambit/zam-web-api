@@ -3,9 +3,9 @@ package signup
 import (
 	"fmt"
 	"git.zam.io/wallet-backend/common/pkg/merrors"
+	"git.zam.io/wallet-backend/common/pkg/types"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models"
-	"git.zam.io/wallet-backend/web-api/internal/models/types"
 	confflow "git.zam.io/wallet-backend/web-api/internal/server/handlers/flows/confirmation"
 	"git.zam.io/wallet-backend/web-api/internal/services/isc"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"

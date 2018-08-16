@@ -2,8 +2,8 @@ package models
 
 import (
 	"database/sql"
+	"git.zam.io/wallet-backend/common/pkg/types"
 	"git.zam.io/wallet-backend/web-api/db"
-	"git.zam.io/wallet-backend/web-api/internal/models/types"
 	"github.com/lib/pq"
 	"github.com/pkg/errors"
 	"strconv"

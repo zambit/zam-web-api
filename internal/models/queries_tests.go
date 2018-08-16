@@ -2,11 +2,11 @@ package models
 
 import (
 	"fmt"
+	"git.zam.io/wallet-backend/common/pkg/types"
 	"git.zam.io/wallet-backend/web-api/db"
 	. "git.zam.io/wallet-backend/web-api/fixtures"
 	"git.zam.io/wallet-backend/web-api/fixtures/database"
 	"git.zam.io/wallet-backend/web-api/fixtures/database/migrations"
-	"git.zam.io/wallet-backend/web-api/internal/models/types"
 	. "github.com/onsi/ginkgo"
 	"github.com/onsi/ginkgo/extensions/table"
 	. "github.com/onsi/gomega"
