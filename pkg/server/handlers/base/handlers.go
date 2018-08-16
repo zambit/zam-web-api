@@ -1,11 +1,11 @@
 package base
 
 import (
+	"git.zam.io/wallet-backend/common/pkg/merrors"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"io"
 	"net/http"
-	"git.zam.io/wallet-backend/common/pkg/merrors"
 )
 
 // HandlerFunc specific project-wide handler function, must return nil or object which will be json-serialized,
@@ -52,6 +52,7 @@ func WrapMiddleware(handler HandlerFunc) gin.HandlerFunc {
 
 		// write response object
 		c.JSON(code, response)
+		c.Abort()
 	}
 }
 
