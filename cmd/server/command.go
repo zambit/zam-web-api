@@ -2,20 +2,20 @@ package server
 
 import (
 	"fmt"
+	"git.zam.io/wallet-backend/web-api/cmd/utils"
+	"git.zam.io/wallet-backend/web-api/config"
+	dbconf "git.zam.io/wallet-backend/web-api/config/db"
+	iscconf "git.zam.io/wallet-backend/web-api/config/isc"
+	serverconf "git.zam.io/wallet-backend/web-api/config/server"
+	internalproviders "git.zam.io/wallet-backend/web-api/internal/providers"
+	_ "git.zam.io/wallet-backend/web-api/internal/server/handlers"
+	"git.zam.io/wallet-backend/web-api/internal/server/handlers/auth"
+	"git.zam.io/wallet-backend/web-api/pkg/providers"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/static"
 	"github.com/gin-gonic/gin"
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
 	"go.uber.org/dig"
-	"git.zam.io/wallet-backend/web-api/config"
-	serverconf "git.zam.io/wallet-backend/web-api/config/server"
-	iscconf "git.zam.io/wallet-backend/web-api/config/isc"
-	dbconf "git.zam.io/wallet-backend/web-api/config/db"
-	_ "git.zam.io/wallet-backend/web-api/internal/server/handlers"
-	"git.zam.io/wallet-backend/web-api/internal/server/handlers/auth"
-	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/static"
-	"git.zam.io/wallet-backend/web-api/cmd/utils"
-	"git.zam.io/wallet-backend/web-api/pkg/providers"
-	internalproviders "git.zam.io/wallet-backend/web-api/internal/providers"
 )
 
 // Create and initialize server command for given viper instance
@@ -72,6 +72,9 @@ func serverMain(cfg config.RootScheme) (err error) {
 
 	// provide broker
 	utils.MustProvide(c, providers.Broker)
+
+	// provide user wallets stat getter
+	utils.MustProvide(c, internalproviders.UserWalletStatsGetter)
 
 	// provide old notificator
 	utils.MustProvide(c, internalproviders.Notificator)

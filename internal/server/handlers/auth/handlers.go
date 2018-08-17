@@ -1,20 +1,15 @@
 package auth
 
 import (
-	"encoding/json"
 	"fmt"
-	"git.zam.io/wallet-backend/common/pkg/merrors"
-	"git.zam.io/wallet-backend/common/pkg/types/decimal"
-	"git.zam.io/wallet-backend/web-api/config/server"
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models"
+	"git.zam.io/wallet-backend/web-api/internal/services/stats"
 	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/server/middlewares"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"net/http"
-	"net/url"
 	"time"
 )
 
@@ -122,24 +117,11 @@ func CheckHandlerFactory() base.HandlerFunc {
 }
 
 // StatFactory returns user statistic part of which is gathered from wallet api.
-func StatFactory(d *db.Db, config server.Scheme) base.HandlerFunc {
-	type userStatResponse struct {
-		Result bool `json:"result"`
-		Data   struct {
-			Count        int                      `json:"count"`
-			TotalBalance map[string]*decimal.View `json:"total_balance"`
-		} `json:"data"`
-		Errors []base.ErrorView `json:"errors"`
-	}
-	const userStatPath = "/api/v1/internal/user_stat"
-
+func StatFactory(d *db.Db, statsGetter stats.IUserWalletsGetter) base.HandlerFunc {
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
 		// bind query params, ignore error
 		params := UserMeRequest{}
 		c.BindQuery(&params)
-		if params.Convert == "" {
-			params.Convert = "usd"
-		}
 
 		phone, err := getUserPhone(c)
 		if err != nil {
@@ -152,33 +134,9 @@ func StatFactory(d *db.Db, config server.Scheme) base.HandlerFunc {
 			return
 		}
 
-		// do wallet-api stat request
-		u, err := url.Parse(config.WalletApiDiscovery.Host)
+		// query userStats
+		userStats, err := statsGetter.Get(user.Phone, params.Convert)
 		if err != nil {
-			err = errors.Wrap(err, "handlers: user: wallet-api host is invalid")
-			return
-		}
-		u.Path = userStatPath
-		u.RawQuery = fmt.Sprintf("user_phone=%s&convert=%s", url.QueryEscape(phone), params.Convert)
-
-		req, _ := http.NewRequest("GET", u.String(), nil)
-		req.Header.Set("Authorization", fmt.Sprintf("Bearer %s", config.WalletApiDiscovery.AccessToken))
-		res, err := http.DefaultClient.Do(req)
-		if err != nil {
-			err = errors.Wrap(err, "handlers: user: wallet-api request failed")
-			return
-		}
-
-		respBody := userStatResponse{}
-		err = json.NewDecoder(res.Body).Decode(&respBody)
-		if err != nil {
-			err = errors.Wrap(err, "handlers: user: wallet-api response decode failed")
-			return
-		}
-		if !respBody.Result {
-			for _, e := range respBody.Errors {
-				err = merrors.Append(err, e)
-			}
 			return
 		}
 
@@ -187,8 +145,8 @@ func StatFactory(d *db.Db, config server.Scheme) base.HandlerFunc {
 			ID:           fmt.Sprint(user.ID),
 			Phone:        phone,
 			Status:       string(user.Status),
-			RegisteredAt: *user.RegisteredAt,
-			Wallets:      respBody.Data,
+			RegisteredAt: user.RegisteredAt.Unix(),
+			Wallets:      WalletsStatsView(userStats),
 		}
 
 		return

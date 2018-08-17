@@ -706,9 +706,9 @@ paths:
 
 definitions:
   Timestamp:
-    type: number
+    type: integer
     description: unix timestamp in UTC timezone
-    example: 1534504706.210095
+    example: 1534504706
 
   UserSingupRequest:
     properties:

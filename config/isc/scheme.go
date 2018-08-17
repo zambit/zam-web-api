@@ -12,4 +12,16 @@ type Scheme struct {
 
 	// StatsPath
 	StatsPath string
+
+	// WalletApiDiscovery holds wallet-api discovery settings
+	WalletApiDiscovery DiscoveryScheme
+}
+
+// DiscoveryScheme holds settings which describes access to internal service api's
+type DiscoveryScheme struct {
+	// Host
+	Host string
+
+	// AccessToken which wallet-api requires
+	AccessToken string
 }

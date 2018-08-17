@@ -11,7 +11,7 @@ import (
 // Register creates and registers /auth routes with given dependencies
 func Register(deps dependencies.Dependencies) gin.IRouter {
 	// placed here until more user endpoints come
-	deps.Routes.GET("/user/me", deps.AuthMiddleware, base.WrapHandler(StatFactory(deps.Db, deps.Conf)))
+	deps.Routes.GET("/user/me", deps.AuthMiddleware, base.WrapHandler(StatFactory(deps.Db, deps.StatsGetter)))
 
 	group := deps.Routes.Group("/auth")
 
