@@ -472,6 +472,14 @@ paths:
       security:
         - Bearer: []
       summary: Get specified user info
+      parameters:
+        - name: convert
+          type: string
+          format: currency
+          in: query
+          required: false
+          example: usd
+          description: currency for additional balance representation, expected in 3 letters form like USD, RUB, EUR etc, if value is wrong, will be ignored
       responses:
         200:
           description: User info
@@ -697,6 +705,11 @@ paths:
             $ref: "#/definitions/Errors"
 
 definitions:
+  Timestamp:
+    type: number
+    description: unix timestamp in UTC timezone
+    example: 1534504706.210095
+
   UserSingupRequest:
     properties:
       phone:
@@ -769,25 +782,58 @@ definitions:
       id:
         type: string
         description: Unique user identifier
+        example: 8b92eaaf62064a2a9df4b2a2d170d53e
       phone:
         type: string
+        format: phone
+        example: '+79991112233'
         description: User phone in international form
-      refferer_id:
+      status:
         type: string
-        description: Identifier or user refferer
-      registered:
-        type: string
-        description: Date when user registration occurs
-        format: date-time
-        example: 2017-07-21T17:32:28Z
+        description: User status, shows only `active` right now
+        example: active
+      registered_at:
+        $ref: "#/definitions/Timestamp"
+        description: Date when user account has been activated
   
   UserResponse:
     allOf:
       - $ref: "#/definitions/BaseResponse"
       - type: object
         properties:
-          user:
-            $ref: "#/definitions/User"
+          data:
+            type: object
+            properties:
+              user:
+                allOf:
+                  - $ref: "#/definitions/User"
+                  - type: object
+                    description: user wallets statistic
+                    properties:
+                      wallets:
+                        type: object
+                        properties:
+                          count:
+                            type: number
+                            description: count of user wallets
+                            example: 1
+                          total_balance:
+                            type: object
+                            description: total wallet balance in fiat and crypto currencies
+                            example:
+                              btc: 1
+                              usd: 5400
+                            additionalProperties:
+                              type: number
+                              properties:
+                                code:
+                                  type: string
+                                  description: Fiat currency or cypto-coin name
+                                  example: btc
+                                text:
+                                  type: number
+                                  description: Value of balance in specified currency or crypto-coin units
+                                  example: 100.12
 
   UserKYCData:
     properties:
