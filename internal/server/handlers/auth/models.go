@@ -10,7 +10,7 @@ type UserSignupRequest struct {
 
 // UserSigninRequest represents user phone and password required to perform signin
 type UserSigninRequest struct {
-	Phone    string `validate:"required,min=5" json:"phone"`
+	Phone    string `validate:"required,phone" json:"phone"`
 	Password string `validate:"required,min=5,eqfield=Password" json:"password"`
 }
 

@@ -24,7 +24,7 @@ func SigninHandlerFactory(
 ) base.HandlerFunc {
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
 		params := UserSigninRequest{}
-		err = c.ShouldBindJSON(&params)
+		err = base.ShouldBindJSON(c, &params)
 		if err != nil {
 			return
 		}

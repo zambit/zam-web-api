@@ -3,9 +3,9 @@ package auth
 import (
 	"git.zam.io/wallet-backend/web-api/db"
 	_ "git.zam.io/wallet-backend/web-api/internal/server/handlers"
-	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	notifmocks "git.zam.io/wallet-backend/web-api/internal/services/notifications/mocks"
+	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	sessmocks "git.zam.io/wallet-backend/web-api/pkg/services/sessions/mocks"
 	. "github.com/onsi/ginkgo"
@@ -25,14 +25,15 @@ import (
 )
 
 const (
-	authExpire  = time.Second
-	validPhone1 = "+79871111111"
-	validPhone2 = "+79871111112"
-	validPhone3 = "+79871111113"
-	pass1       = "12345"
-	pass2       = "54321"
-	pass3       = "lkjhafnion2rmpu1-w0m9d12h3[f912u3nr0ym92p[,iod-0]\\/\\]"
-	shortPass   = "123"
+	authExpire    = time.Second
+	validPhone1   = "+79871111111"
+	validPhone2   = "+79871111112"
+	validPhone3   = "+79871111113"
+	invalidPhone3 = "+798711111131"
+	pass1         = "12345"
+	pass2         = "54321"
+	pass3         = "lkjhafnion2rmpu1-w0m9d12h3[f912u3nr0ym92p[,iod-0]\\/\\]"
+	shortPass     = "123"
 )
 
 const tokenName = "TestBearer"
@@ -134,6 +135,13 @@ var _ = Describe("Given the auth api", func() {
 					sessPayload := sessStore.Calls[0].Arguments[0]
 					Expect(sessPayload).To(HaveKeyWithValue("phone", validPhone1))
 				})
+			})
+
+			ItD("should fail due to invalid phone", func(handler base.HandlerFunc) {
+				data, _, err := handler(CreateSIContext(invalidPhone3, pass2))
+				Expect(err).To(HaveOccurred())
+				Expect(data).To(BeNil())
+				Expect(err).To(Equal(base.NewFieldErr("body", "phone", "phone is invalid")))
 			})
 
 			ItD("should fail due to wrong password", func(handler base.HandlerFunc) {
