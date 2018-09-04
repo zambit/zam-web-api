@@ -4,20 +4,27 @@ import (
 	"encoding/json"
 	"fmt"
 	"git.zam.io/wallet-backend/web-api/pkg/services/notifications"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
+const errCodeAlphanumericFromNotAllowed = 21612
+
 // backend just p
 type backend struct {
-	url, sid, token, fromPhone string
+	url, sid, token, fromPhone, fbFromPhone string
 
 	client http.Client
 }
 
-// New creates new twillo transport in form https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}
+// New creates new twillo transport form uri in format:
+// 'https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}&FallbackFromPhone={fallback_send_from_phone}',
+// where 'twilio_sid' and 'twilio_token' taken from your administrative console, 'send_from_phone' - is phone
+// (both numeric and alphanumeric) from which messages will be sent, 'fallback_send_from_phone' - optional which will
+// be used in case when recipient live in country where alphanumeric phone numbers are restricted
 func New(uri string) notifications.ITransport {
 	parsed, err := url.Parse(uri)
 	if err != nil {
@@ -27,6 +34,7 @@ func New(uri string) notifications.ITransport {
 	sid := parsed.User.Username()
 	token, _ := parsed.User.Password()
 	fromPhone := parsed.Query().Get("From")
+	fbFromPhone := parsed.Query().Get("FallbackFrom")
 	fromPhone = strings.Replace(fromPhone, " ", "+", 1)
 
 	tUrl := url.URL{
@@ -37,15 +45,16 @@ func New(uri string) notifications.ITransport {
 
 	if sid == "" || token == "" || fromPhone == "" {
 		panic(fmt.Errorf(
-			"error must match pattern: https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}",
+			"error must match pattern: https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}&FallbackFromPhone={fallback_send_from_phone}",
 		))
 	}
 
 	return &backend{
-		url:       tUrl.String() + "/2010-04-01/Accounts/" + sid + "/Messages.json",
-		sid:       sid,
-		token:     token,
-		fromPhone: fromPhone,
+		url:         tUrl.String() + "/2010-04-01/Accounts/" + sid + "/Messages.json",
+		sid:         sid,
+		token:       token,
+		fromPhone:   fromPhone,
+		fbFromPhone: fbFromPhone,
 	}
 }
 
@@ -62,11 +71,32 @@ func (e *respErr) Error() string {
 }
 
 // Send
-func (b *backend) Send(recipient string, body string) error {
+func (b *backend) Send(recipient, body string) error {
+	err := b.send(b.fromPhone, recipient, body)
+	if err == nil {
+		// reverse err condition because it will simplify fallback flow
+		return nil
+	}
+
+	if tErr, ok := err.(*respErr); ok {
+		// in case when alphanumeric not allowed in recipient country, fallback on second from phone
+		if tErr.Code == errCodeAlphanumericFromNotAllowed {
+			if b.fbFromPhone != "" {
+				return b.send(b.fbFromPhone, recipient, body)
+			} else {
+				return errors.Wrap(tErr, "alphanumeric phones not allowed in recipient country, but fallback phone not specified")
+			}
+		}
+		return tErr
+	}
+	return err
+}
+
+func (b *backend) send(from, recipient, body string) error {
 	// Build out the data for our message
 	v := url.Values{}
 	v.Set("To", recipient)
-	v.Set("From", b.fromPhone)
+	v.Set("From", from)
 	v.Set("Body", body)
 	rb := *strings.NewReader(v.Encode())
 
