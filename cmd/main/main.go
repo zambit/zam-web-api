@@ -15,7 +15,6 @@ func main() {
 	config.Init(v)
 	rootCmd := root.Create(v, &cfg)
 	serverCmd := server.Create(v, &cfg)
-	serverCmd.Flags().AddFlagSet(rootCmd.Flags())
 	rootCmd.AddCommand(&serverCmd)
 
 	err := rootCmd.Execute()
