@@ -1,8 +1,8 @@
 package notifications
 
 import (
+	"crypto/rand"
 	"github.com/google/uuid"
-	"math/rand"
 	"strings"
 )
 
