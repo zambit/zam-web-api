@@ -1,10 +1,10 @@
 package providers
 
 import (
-	"github.com/gin-gonic/gin"
-	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
-	"git.zam.io/wallet-backend/web-api/pkg/server/middlewares"
 	"git.zam.io/wallet-backend/web-api/config/server"
+	"git.zam.io/wallet-backend/web-api/pkg/server/middlewares"
+	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
+	"github.com/gin-gonic/gin"
 )
 
 // Auth middleware

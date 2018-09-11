@@ -10,6 +10,7 @@ import (
 	internalproviders "git.zam.io/wallet-backend/web-api/internal/providers"
 	_ "git.zam.io/wallet-backend/web-api/internal/server/handlers"
 	"git.zam.io/wallet-backend/web-api/internal/server/handlers/auth"
+	"git.zam.io/wallet-backend/web-api/internal/server/handlers/kyc"
 	"git.zam.io/wallet-backend/web-api/pkg/providers"
 	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/static"
 	"github.com/gin-gonic/gin"
@@ -95,6 +96,7 @@ func serverMain(cfg config.RootScheme) (err error) {
 	// register handlers
 	utils.MustInvoke(c, static.Register)
 	utils.MustInvoke(c, auth.Register)
+	utils.MustInvoke(c, kyc.Register)
 
 	// Run server!
 	utils.MustInvoke(c, func(engine *gin.Engine) error {

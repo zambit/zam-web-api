@@ -1,8 +1,8 @@
 package providers
 
 import (
-	"git.zam.io/wallet-backend/web-api/db"
 	dbconf "git.zam.io/wallet-backend/web-api/config/db"
+	"git.zam.io/wallet-backend/web-api/db"
 )
 
 // DB

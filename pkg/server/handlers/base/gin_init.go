@@ -5,6 +5,7 @@ import (
 	"github.com/gin-gonic/gin/binding"
 	"github.com/go-playground/validator"
 	"reflect"
+	"regexp"
 	"strings"
 )
 
@@ -32,12 +33,12 @@ func init() {
 	binding.Validator = v
 }
 
+var isAlphaWSValidator = regexp.MustCompile(`^[A-Za-z\s]+$`).MatchString
+
 func initValidator(v *validator.Validate) {
 	// init custom validators
 	v.RegisterValidation("phone", func(fl validator.FieldLevel) bool {
 		val := fl.Field()
-		vall := val.Interface()
-		_ = vall
 		var phone string
 		switch val.Type().Kind() {
 		case reflect.String:
@@ -57,6 +58,26 @@ func initValidator(v *validator.Validate) {
 		// validate phone
 		_, err := types.NewPhone(phone)
 		return err == nil
+	})
+	v.RegisterValidation("alphawithspaces", func(fl validator.FieldLevel) bool {
+		val := fl.Field()
+		var strValue string
+		switch val.Type().Kind() {
+		case reflect.String:
+			strValue = val.String()
+			if len(strValue) == 0 {
+				return true
+			}
+		case reflect.Ptr:
+			if val.Elem().Kind() != reflect.String {
+				return false
+			}
+			if val.Elem().IsNil() {
+				return true
+			}
+			strValue = val.Elem().String()
+		}
+		return isAlphaWSValidator(strValue)
 	})
 
 	// init field func to obtain field json names rather then original names

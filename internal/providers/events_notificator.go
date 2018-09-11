@@ -1,9 +1,9 @@
 package providers
 
 import (
-	"git.zam.io/wallet-backend/web-api/pkg/services/broker"
-	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"git.zam.io/wallet-backend/web-api/internal/services/isc"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
+	"git.zam.io/wallet-backend/web-api/pkg/services/broker"
 	"github.com/sirupsen/logrus"
 )
 

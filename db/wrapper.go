@@ -184,6 +184,7 @@ func getMapper(a IGenericQueryMaker) *reflectx.Mapper {
 }
 
 type rowCreatorType func(err error, rows *sql.Rows, mapper *reflectx.Mapper) *sqlx.Row
+
 var createRowFunc rowCreatorType
 
 func namedQueryRow(qm IGenericQueryMaker, query string, arg interface{}) *sqlx.Row {
@@ -213,12 +214,12 @@ func createRowCreator() rowCreatorType {
 		rowElem := reflect.ValueOf(row).Elem()
 
 		if err != nil {
-			errField := reflect.NewAt(errValField.Type, unsafe.Pointer(rowElem.UnsafeAddr() + errValField.Offset)).Elem()
+			errField := reflect.NewAt(errValField.Type, unsafe.Pointer(rowElem.UnsafeAddr()+errValField.Offset)).Elem()
 			errField.Set(reflect.ValueOf(err))
 		}
 
 		if rows != nil {
-			rowsField := reflect.NewAt(rowsValField.Type, unsafe.Pointer(rowElem.UnsafeAddr() + rowsValField.Offset)).Elem()
+			rowsField := reflect.NewAt(rowsValField.Type, unsafe.Pointer(rowElem.UnsafeAddr()+rowsValField.Offset)).Elem()
 			rowsField.Set(reflect.ValueOf(rows))
 		}
 

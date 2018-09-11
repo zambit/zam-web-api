@@ -4,12 +4,12 @@ import (
 	"errors"
 	"fmt"
 	serverconf "git.zam.io/wallet-backend/web-api/config/server"
+	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions/jwt"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions/mem"
 	"time"
-	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 )
 
 // SessionsStorage

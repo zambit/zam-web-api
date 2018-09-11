@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
+	"github.com/dgrijalva/jwt-go"
 	"github.com/google/uuid"
-	"gopkg.in/dgrijalva/jwt-go.v3"
 	"time"
 )
 

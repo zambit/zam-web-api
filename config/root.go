@@ -2,10 +2,10 @@ package config
 
 import (
 	"git.zam.io/wallet-backend/web-api/config/db"
+	"git.zam.io/wallet-backend/web-api/config/isc"
 	"git.zam.io/wallet-backend/web-api/config/server"
 	"github.com/spf13/viper"
 	"time"
-	"git.zam.io/wallet-backend/web-api/config/isc"
 )
 
 // RootScheme is the scheme used by top-level app

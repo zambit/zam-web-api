@@ -46,7 +46,7 @@ func New(c *redis.Client, logger logrus.FieldLogger) broker.IBroker {
 
 // delivery
 type delivery struct {
-	logger logrus.FieldLogger
+	logger  logrus.FieldLogger
 	orig    rmq.Delivery
 	ident   broker.Identifier
 	data    []byte

@@ -21,7 +21,7 @@ type backend struct {
 }
 
 // New creates new twillo transport form uri in format:
-// 'https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}&FallbackFromPhone={fallback_send_from_phone}',
+// 'https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}&FallbackFrom={fallback_send_from_phone}',
 // where 'twilio_sid' and 'twilio_token' taken from your administrative console, 'send_from_phone' - is phone
 // (both numeric and alphanumeric) from which messages will be sent, 'fallback_send_from_phone' - optional which will
 // be used in case when recipient live in country where alphanumeric phone numbers are restricted
@@ -45,7 +45,7 @@ func New(uri string) notifications.ITransport {
 
 	if sid == "" || token == "" || fromPhone == "" {
 		panic(fmt.Errorf(
-			"error must match pattern: https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}&FallbackFromPhone={fallback_send_from_phone}",
+			"error must match pattern: https://{twilio_sid}:{twilio_token}@api.twilio.com/?From={send_from_phone}&FallbackFrom={fallback_send_from_phone}",
 		))
 	}
 

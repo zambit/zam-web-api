@@ -1,6 +1,7 @@
 package base
 
 import (
+	"encoding/json"
 	"fmt"
 	"git.zam.io/wallet-backend/common/pkg/merrors"
 	"github.com/go-playground/validator"
@@ -71,6 +72,15 @@ func ViewFromValidationErrs(validationErrs validator.ValidationErrors) (view err
 	return
 }
 
+// ViewFromUnmarshalErr
+func ViewFromUnmarshalErr(uErr *json.UnmarshalTypeError) (view error) {
+	return NewFieldErr(
+		"body",
+		uErr.Field,
+		fmt.Sprintf(`unexpected field value "%s", %s is expected`, uErr.Value, uErr.Type),
+	)
+}
+
 // coerceValidationErr coerce different types of validation to look like backend message
 func coerceValidationErr(err validator.FieldError) (paramName, message string) {
 	paramName = err.Field()
@@ -89,6 +99,12 @@ func coerceValidationErr(err validator.FieldError) (paramName, message string) {
 		message = "only latin-alphabet letters allowed"
 	case "alphanum":
 		message = "only latin-alphabet letters or digits allowed"
+	case "alphawithspaces":
+		message = "only latin-alphabet with spaces allowed"
+	case "email":
+		message = "must be email"
+	case "oneof":
+		message = fmt.Sprintf("value must be one of [%s]", strings.Join(strings.Split(err.Param(), " "), ", "))
 	default:
 		if e, ok := err.(error); ok {
 			message = e.Error()
