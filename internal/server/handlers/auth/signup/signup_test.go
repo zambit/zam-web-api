@@ -9,7 +9,7 @@ import (
 	. "git.zam.io/wallet-backend/web-api/fixtures"
 	"git.zam.io/wallet-backend/web-api/fixtures/database"
 	"git.zam.io/wallet-backend/web-api/fixtures/database/migrations"
-	"git.zam.io/wallet-backend/web-api/internal/models"
+	models "git.zam.io/wallet-backend/web-api/internal/models/user"
 	"git.zam.io/wallet-backend/web-api/internal/services/isc"
 	iscmock "git.zam.io/wallet-backend/web-api/internal/services/isc/mocks"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"

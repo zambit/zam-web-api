@@ -1,4 +1,4 @@
-package models
+package user
 
 import (
 	"git.zam.io/wallet-backend/common/pkg/types"

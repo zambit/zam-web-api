@@ -17,7 +17,7 @@ import (
 
 	"bytes"
 	"encoding/json"
-	"git.zam.io/wallet-backend/web-api/internal/models"
+	models "git.zam.io/wallet-backend/web-api/internal/models/user"
 	"github.com/gin-gonic/gin"
 	"github.com/stretchr/testify/mock"
 	"net/http"

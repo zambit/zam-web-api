@@ -3,7 +3,7 @@ package confirmation
 import (
 	"fmt"
 	"git.zam.io/wallet-backend/web-api/db"
-	"git.zam.io/wallet-backend/web-api/internal/models"
+	models "git.zam.io/wallet-backend/web-api/internal/models/user"
 	"git.zam.io/wallet-backend/web-api/internal/services/notifications"
 	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
 	"git.zam.io/wallet-backend/web-api/pkg/services/nosql"
