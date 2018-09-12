@@ -22,7 +22,6 @@ type CreateRequest struct {
 
 // View user personal data representation
 type View struct {
-	Status    string                 `json:"status"`
 	Email     string                 `json:"email"`
 	FirstName string                 `json:"first_name"`
 	LastName  string                 `json:"last_name"`
@@ -34,7 +33,8 @@ type View struct {
 
 // GetResponse
 type GetResponse struct {
-	PersonalData *View `json:"personal_data"`
+	Status       string `json:"status"`
+	PersonalData *View  `json:"personal_data"`
 }
 
 // ViewFromModel
@@ -45,7 +45,6 @@ func ViewFromModel(data *kyc.Data) *View {
 
 	bd := types.UnixTimeView(data.BirthDate)
 	return &View{
-		Status:    string(data.Status),
 		Email:     data.Email,
 		FirstName: data.FirstName,
 		LastName:  data.LastName,
@@ -53,5 +52,20 @@ func ViewFromModel(data *kyc.Data) *View {
 		Sex:       data.Sex,
 		Country:   data.Country,
 		Address:   data.Address,
+	}
+}
+
+// CreateGetResponse
+func CreateGetResponse(data *kyc.Data) GetResponse {
+	var status string
+	if data != nil {
+		status = string(data.Status)
+	} else {
+		status = "unloaded"
+	}
+
+	return GetResponse{
+		Status:       status,
+		PersonalData: ViewFromModel(data),
 	}
 }

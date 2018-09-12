@@ -741,8 +741,6 @@ components:
         last_name:
           type: string
           description: User surname
-        status:
-          $ref: '#/components/schemas/UserKYCStatus'
         email:
           type: string
           format: email
@@ -816,12 +814,15 @@ components:
         - $ref: '#/components/schemas/BaseResponse'
         - type: object
           properties:
+            status:
+              $ref: '#/components/schemas/UserKYCStatus'
             personal_data:
               $ref: '#/components/schemas/UserKYCData'
     
     UserKYCStatus:
       type: string
       enum:
+        - unloaded
         - pending
         - verified
         - declined

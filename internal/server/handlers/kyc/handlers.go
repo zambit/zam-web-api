@@ -98,9 +98,7 @@ func GetFactory(d *db.Db) base.HandlerFunc {
 		if err != nil {
 			return
 		}
-		resp = GetResponse{
-			PersonalData: ViewFromModel(data),
-		}
+		resp = CreateGetResponse(data)
 		return
 	}
 }
