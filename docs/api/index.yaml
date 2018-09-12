@@ -3,10 +3,8 @@ info:
   title: ZamZam API
   description: Test
   version: 0.0.1
-
 servers:
-- url: 'http://api-test.zam.io/api/v1'
-
+  - url: 'http://api-test.zam.io/api/v1'
 paths:
   /auth/signup/start:
     post:
@@ -78,7 +76,7 @@ paths:
                     Phone of an existing user are required, self phone are not
                     allowed.
               required:
-              - phone
+                - phone
         description: User account creation request
         required: true
   /auth/signup/verify:
@@ -91,15 +89,15 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/BaseResponse'
-                - type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        signup_token:
-                          type: string
-                          description: SignUp token required by further "finish" request
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          signup_token:
+                            type: string
+                            description: SignUp token required by further "finish" request
         '400':
           description: |
             Possible error messages:
@@ -149,8 +147,8 @@ paths:
                   type: string
                   description: Verification code obtained by SMS
               required:
-              - phone
-              - verification_code
+                - phone
+                - verification_code
         description: User account verification request
         required: true
   /auth/signup/finish:
@@ -232,10 +230,10 @@ paths:
                   type: string
                   format: password
               required:
-              - phone
-              - signup_token
-              - password
-              - password_confirmation
+                - phone
+                - signup_token
+                - password
+                - password_confirmation
         description: User account craetion request
         required: true
   /auth/recovery/start:
@@ -278,7 +276,7 @@ paths:
                   format: phone_number
                   description: User phone
               required:
-              - phone
+                - phone
         description: User recovery request
         required: true
   /auth/recovery/verify:
@@ -293,19 +291,19 @@ paths:
             application/json:
               schema:
                 allOf:
-                - $ref: '#/components/schemas/BaseResponse'
-                - type: object
-                  properties:
-                    data:
-                      type: object
-                      properties:
-                        recovery_token:
-                          type: string
-                          description: >-
-                            Recovery Token required by further "finish"
-                            request
-                      required:
-                      - token
+                  - $ref: '#/components/schemas/BaseResponse'
+                  - type: object
+                    properties:
+                      data:
+                        type: object
+                        properties:
+                          recovery_token:
+                            type: string
+                            description: >-
+                              Recovery Token required by further "finish"
+                              request
+                        required:
+                          - token
         '400':
           description: |
             Possible error messages:
@@ -355,8 +353,8 @@ paths:
                   type: string
                   description: Verification code obtained by SMS
               required:
-              - phone
-              - verification_code
+                - phone
+                - verification_code
         description: User password recovery verification request
         required: true
   /auth/recovery/finish:
@@ -424,10 +422,10 @@ paths:
                   type: string
                   format: password
               required:
-              - phone
-              - recovery_token
-              - password
-              - password_confirmation
+                - phone
+                - recovery_token
+                - password
+                - password_confirmation
         description: User password recovery finish request
         required: true
   /auth/signin:
@@ -458,7 +456,7 @@ paths:
   /auth/signout:
     delete:
       security:
-      - Bearer: []
+        - Bearer: []
       summary: Invalidates user's current authorization session
       responses:
         '200':
@@ -476,7 +474,7 @@ paths:
   /auth/refresh_token:
     get:
       security:
-      - Bearer: []
+        - Bearer: []
       summary: Refresh user token
       responses:
         '200':
@@ -494,7 +492,7 @@ paths:
   /auth/check:
     get:
       security:
-      - Bearer: []
+        - Bearer: []
       summary: 'Checks if user authorized, returns his phone on success'
       responses:
         '200':
@@ -512,20 +510,20 @@ paths:
   /user/me:
     get:
       security:
-      - Bearer: []
+        - Bearer: []
       summary: Get specified user info
       parameters:
-      - name: convert
-        in: query
-        required: false
-        example: usd
-        description: >-
-          currency for additional balance representation, expected in 3
-          letters form like USD, RUB, EUR etc, if value is wrong, will be
-          ignored
-        schema:
-          type: string
-          format: currency
+        - name: convert
+          in: query
+          required: false
+          example: usd
+          description: >-
+            currency for additional balance representation, expected in 3
+            letters form like USD, RUB, EUR etc, if value is wrong, will be
+            ignored
+          schema:
+            type: string
+            format: currency
       responses:
         '200':
           description: User info
@@ -539,18 +537,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Errors'
-  /user/me/verify:
+  /user/me/personal:
     post:
       security:
-      - Bearer: []
-      summary: Create user KYC request
+        - Bearer: []
+      summary: Send personal data (create KYC request). Requires sender to be olde then 18 ages
       responses:
-        '201':
+        '200':
           description: KYC request created
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/UserKYCResponse'
+                $ref: '#/components/schemas/BaseResponse'
         default:
           description: In case of any error
           content:
@@ -566,11 +564,11 @@ paths:
         required: true
     get:
       security:
-      - Bearer: []
+        - Bearer: []
       summary: Get user KYC request info
       responses:
         '200':
-          description: User KYC request info
+          description: User KYC request info (`personal_data` will be empty if no pesonal data has been sent)
           content:
             application/json:
               schema:
@@ -581,10 +579,11 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Errors'
+
   /user/me/refferals:
     get:
       security:
-      - Bearer: []
+        - Bearer: []
       summary: Get list of user refferals
       responses:
         '200':
@@ -599,207 +598,12 @@ paths:
                       type: string
                       format: uuid
                       description: Refferal user ID
-  /user/me/wallets:
-    post:
-      security:
-      - Bearer: []
-      summary: Create new user wallet for given coin
-      responses:
-        '201':
-          description: New wallet has been successfully created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserWalletResponse'
-        default:
-          description: In case of any error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/UserCreateWalletRequest'
-        description: Create wallet request
-        required: true
-    get:
-      security:
-      - Bearer: []
-      summary: Get all user wallets
-      parameters:
-      - in: query
-        name: coin
-        required: false
-        description: 'Filter by: coin name'
-        schema:
-          type: string
-      - in: query
-        name: wallet_id
-        required: false
-        description: Wallet ID
-        schema:
-          type: string
-      - in: query
-        name: page
-        required: false
-        description: Reference to the page
-        schema:
-          type: string
-      - in: query
-        name: count
-        required: false
-        description: Number of items to show on the page
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: All user wallets in a list
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserAllWalletsResponse'
-        default:
-          description: In case of any error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-  '/user/me/wallets/{wallet_id}':
-    parameters:
-    - in: path
-      name: wallet_id
-      required: true
-      description: Wallet ID
-      schema:
-        type: string
-    get:
-      security:
-      - Bearer: []
-      summary: Request user wallet info by wallet id
-      responses:
-        '200':
-          description: Wallets list
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/UserWalletResponse'
-        default:
-          description: In case of any error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-  /user/me/txs:
-    get:
-      security:
-      - Bearer: []
-      summary: Get all transactions or use filters
-      parameters:
-      - in: query
-        name: coin
-        required: false
-        description: 'Filter by: coin name'
-        schema:
-          type: string
-      - in: query
-        name: wallet_id
-        required: false
-        description: 'Filter by: wallet ID'
-        schema:
-          type: string
-      - in: query
-        name: recipient
-        required: false
-        description: 'Filter by: Recipient address'
-        schema:
-          type: string
-      - in: query
-        name: from_time
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: until_time
-        schema:
-          type: string
-          format: date-time
-      - in: query
-        name: page
-        required: false
-        description: Reference to the page
-        schema:
-          type: string
-      - in: query
-        name: count
-        required: false
-        description: Number of items to show on the page
-        schema:
-          type: integer
-      responses:
-        '200':
-          description: Transactions list
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WalletAllTransactionsResponse'
-        default:
-          description: In case of any error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-    post:
-      security:
-      - Bearer: []
-      summary: Send transaction
-      responses:
-        '201':
-          description: Pending transaction created
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WalletSendTransactionResponse'
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/WalletSendTransactionRequest'
-        required: true
-  '/user/me/txs/{tx_id}':
-    parameters:
-    - in: path
-      name: tx_id
-      required: true
-      description: Transaction ID
-      schema:
-        type: string
-    get:
-      security:
-      - Bearer: []
-      summary: Get transaction for specified ID
-      responses:
-        '200':
-          description: Transaction
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/WalletTransactionResponse'
-        default:
-          description: In case of any error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/Errors'
-
 components:
   securitySchemes:
     Bearer:
       type: http
       scheme: bearer
       bearerFormat: JWT
-
   schemas:
     Timestamp:
       type: integer
@@ -820,41 +624,41 @@ components:
           type: string
           description: Valid phone of person which sent invite which leads to this call
       required:
-      - phone
-      - password
-      - password_confirmation
+        - phone
+        - password
+        - password_confirmation
     BaseResponse:
       properties:
         result:
           type: boolean
     UserTokenResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          data:
-            type: object
-            properties:
-              token:
-                type: string
-                description: User authorization token
-                example: asdfjbkasfkjasdfl
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                token:
+                  type: string
+                  description: User authorization token
+                  example: asdfjbkasfkjasdfl
       required:
-      - token
-      - data
+        - token
+        - data
     UserPhoneResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          data:
-            type: object
-            properties:
-              phone:
-                type: string
-                description: User phone number
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                phone:
+                  type: string
+                  description: User phone number
       required:
-      - phone
+        - phone
     UserSigninRequest:
       properties:
         phone:
@@ -865,8 +669,8 @@ components:
           format: password
           description: User passowrd
       required:
-      - phone
-      - password
+        - phone
+        - password
     User:
       properties:
         id:
@@ -885,108 +689,151 @@ components:
         registered_at:
           $ref: '#/components/schemas/Timestamp'
           description: Date when user account has been activated
+
     UserResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          data:
-            type: object
-            properties:
-              user:
-                allOf:
-                - $ref: '#/components/schemas/User'
-                - type: object
-                  description: user wallets statistic
-                  properties:
-                    wallets:
-                      type: object
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            data:
+              type: object
+              properties:
+                user:
+                  allOf:
+                    - $ref: '#/components/schemas/User'
+                    - type: object
+                      description: user wallets statistic
                       properties:
-                        count:
-                          type: number
-                          description: count of user wallets
-                          example: 1
-                        total_balance:
+                        wallets:
                           type: object
-                          description: >-
-                            total wallet balance in fiat and crypto
-                            currencies
-                          example:
-                            btc: 1
-                            usd: 5400
-                          additionalProperties:
-                            type: number
-                            properties:
-                              code:
-                                type: string
-                                description: Fiat currency or cypto-coin name
-                                example: btc
-                              text:
+                          properties:
+                            count:
+                              type: number
+                              description: count of user wallets
+                              example: 1
+                            total_balance:
+                              type: object
+                              description: >-
+                                total wallet balance in fiat and crypto
+                                currencies
+                              example:
+                                btc: 1
+                                usd: 5400
+                              additionalProperties:
                                 type: number
-                                description: >-
-                                  Value of balance in specified currency or
-                                  crypto-coin units
-                                example: 100.12
+                                properties:
+                                  code:
+                                    type: string
+                                    description: Fiat currency or cypto-coin name
+                                    example: btc
+                                  text:
+                                    type: number
+                                    description: >-
+                                      Value of balance in specified currency or
+                                      crypto-coin units
+                                    example: 100.12
+   
     UserKYCData:
       properties:
-        user_id:
-          type: string
-          description: User reference
-        name:
+        first_name:
           type: string
           description: User name
-        surname:
+        last_name:
           type: string
           description: User surname
-        birthdate:
+        status:
+          $ref: '#/components/schemas/UserKYCStatus'
+        email:
           type: string
-          description: Date of the user birthdate
-          format: date
-          example: '1900-07-21T17:32:28.000Z'
+          format: email
+        sex:
+          type: string
+          enum: [male, female, undefined]
+        birth_date:
+          type: integer
+          format: utc_timestampt
+          description: Date of the user birthdate=
         country:
           type: string
           description: Main user citizenship
           example: Ethiopia
         address:
-          type: string
+          type: object
           description: User living address
-        email:
-          type: string
-          format: email
-        status:
-          $ref: '#/components/schemas/UserKYCStatus'
-      required:
-      - user_id
-      - name
-      - surname
-      - birthdate
-      - country
-      - address
-      - email
-      - status
+          properties:
+            city:
+              type: string
+            region:
+              type: string
+            street:
+              type: street
+            house:
+              type: string
+            postal_code:
+              type: integer
+
     UserCreateKYCRequest:
-      $ref: '#/components/schemas/UserKYCData'
+      first_name:
+        type: string
+        format: alpha
+        description: User name
+      last_name:
+        type: string
+        format: alpha
+        description: User surname
+      email:
+        type: string
+        format: email
+      sex:
+        type: string
+        enum: [male, female, undefined]
+      birth_date:
+        type: integer
+        format: utc_timestampt
+        description: Date of the user birthdate
+      country:
+        type: string
+        description: Main user citizenship
+        example: Ethiopia
+      city:
+        format: alpha
+        type: string
+      region:
+        format: alpha
+        type: string
+      street:
+        format: alpha
+        type: street
+      house:
+        format: alpha
+        type: string
+      postal_code:
+        format: alpha
+        type: integer
+
     UserKYCResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          kyc:
-            $ref: '#/components/schemas/UserKYCData'
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            personal_data:
+              $ref: '#/components/schemas/UserKYCData'
+    
     UserKYCStatus:
       type: string
       enum:
-      - pending
-      - rejected
-      - verified
+        - pending
+        - verified
+        - declined
+
     CoinType:
       type: string
       description: Specifies coin type
       enum:
-      - eth
-      - btc
-      - btcc
-      - zam
+        - eth
+        - btc
+        - btcc
+        - zam
     UserCreateWalletRequest:
       properties:
         coin:
@@ -995,7 +842,7 @@ components:
           type: string
           description: Optional name for user wallet
       required:
-      - coin
+        - coin
     UserWalletData:
       type: object
       properties:
@@ -1015,42 +862,42 @@ components:
           type: number
           description: Wallet balance
       required:
-      - id
-      - coin
-      - wallet_name
-      - address
-      - balance
+        - id
+        - coin
+        - wallet_name
+        - address
+        - balance
     UserWalletResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          wallet:
-            $ref: '#/components/schemas/UserWalletData'
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            wallet:
+              $ref: '#/components/schemas/UserWalletData'
     UserAllWalletsResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          сount:
-            type: integer
-            description: Count of returned transactions
-          next:
-            type: string
-            description: Reference to the next page
-          wallets:
-            items:
-              $ref: '#/components/schemas/UserWalletData'
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            сount:
+              type: integer
+              description: Count of returned transactions
+            next:
+              type: string
+              description: Reference to the next page
+            wallets:
+              items:
+                $ref: '#/components/schemas/UserWalletData'
     WalletTransactionStatus:
       description: Describes transaction status
       type: string
       enum:
-      - pending
-      - awaiting_recipient
-      - awaiting_confirmations
-      - done
-      - cancelled
-      - failed
+        - pending
+        - awaiting_recipient
+        - awaiting_confirmations
+        - done
+        - cancelled
+        - failed
     WalletTransactionData:
       properties:
         id:
@@ -1059,8 +906,8 @@ components:
         direction:
           type: string
           enum:
-          - incoming
-          - outgoing
+            - incoming
+            - outgoing
         status:
           $ref: '#/components/schemas/WalletTransactionStatus'
         coin:
@@ -1074,10 +921,10 @@ components:
           type: number
           description: Amount of transferred coins
       required:
-      - id
-      - direction
-      - recipient
-      - amount
+        - id
+        - direction
+        - recipient
+        - amount
     WalletSendTransactionRequest:
       properties:
         wallet_id:
@@ -1093,44 +940,44 @@ components:
           description: Amount of transferred coins
     WalletSendTransactionResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          transaction:
-            $ref: '#/components/schemas/WalletTransactionData'
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            transaction:
+              $ref: '#/components/schemas/WalletTransactionData'
     WalletTransactionResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          transaction:
-            $ref: '#/components/schemas/WalletTransactionData'
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            transaction:
+              $ref: '#/components/schemas/WalletTransactionData'
     WalletAllTransactionsResponse:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          сount:
-            type: integer
-            description: Count of returned transactions
-          next:
-            type: string
-            description: Reference to the next page
-          transactions:
-            items:
-              $ref: '#/components/schemas/WalletTransactionData'
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            сount:
+              type: integer
+              description: Count of returned transactions
+            next:
+              type: string
+              description: Reference to the next page
+            transactions:
+              items:
+                $ref: '#/components/schemas/WalletTransactionData'
     Errors:
       allOf:
-      - $ref: '#/components/schemas/BaseResponse'
-      - type: object
-        properties:
-          errors:
-            type: array
-            items:
-              type: object
-              anyOf:
-              - $ref: '#/components/schemas/FieldError'
-              - $ref: '#/components/schemas/Error'
+        - $ref: '#/components/schemas/BaseResponse'
+        - type: object
+          properties:
+            errors:
+              type: array
+              items:
+                type: object
+                anyOf:
+                  - $ref: '#/components/schemas/FieldError'
+                  - $ref: '#/components/schemas/Error'
     Error:
       description: Error format which returned by handlers (usually internal errors)
       type: object
@@ -1156,6 +1003,6 @@ components:
           type: string
           description: Describes the way in which this parameter has come
       required:
-      - message
-      - name
-      - input
+        - message
+        - name
+        - input
