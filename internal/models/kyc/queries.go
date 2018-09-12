@@ -81,3 +81,16 @@ func Get(tx db.ITx, userID int64) (data *Data, err error) {
 	}
 	return &d, nil
 }
+
+// GetStatus get only status
+func GetStatus(tx db.ITx, userID int64) (status StatusType, err error) {
+	err = tx.QueryRow(
+		`select 
+			personal_data_statuses.name 
+		from personal_data
+		inner join personal_data_statuses on personal_data_statuses.id = personal_data.status_id
+		where user_id = $1`,
+		userID,
+	).Scan(&status)
+	return
+}

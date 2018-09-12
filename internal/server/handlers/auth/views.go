@@ -25,6 +25,7 @@ type UserResponse struct {
 	ID           string           `json:"id"`
 	Phone        string           `json:"phone"`
 	Status       string           `json:"status"`
+	KYC          string           `json:"kyc"`
 	RegisteredAt int64            `json:"registered_at"`
 	Wallets      WalletsStatsView `json:"wallets"`
 }

@@ -1,8 +1,8 @@
 package auth
 
 import (
-	"fmt"
 	"git.zam.io/wallet-backend/web-api/db"
+	"git.zam.io/wallet-backend/web-api/internal/models/kyc"
 	models "git.zam.io/wallet-backend/web-api/internal/models/user"
 	"git.zam.io/wallet-backend/web-api/internal/services/stats"
 	"git.zam.io/wallet-backend/web-api/pkg/server/handlers/base"
@@ -128,11 +128,20 @@ func StatFactory(d *db.Db, statsGetter stats.IUserWalletsGetter) base.HandlerFun
 			return
 		}
 
-		//
-		user, err := models.GetUserByPhone(d, phone)
-		if err != nil {
-			return
-		}
+		var (
+			user   models.User
+			status kyc.StatusType
+		)
+		err = d.Tx(func(tx db.ITx) error {
+			var err error
+			user, err = models.GetUserByPhone(tx, phone)
+			if err != nil {
+				return err
+			}
+
+			status, err = kyc.GetStatus(tx, user.ID)
+			return err
+		})
 
 		// query userStats
 		userStats, err := statsGetter.Get(user.Phone, params.Convert)
@@ -142,9 +151,9 @@ func StatFactory(d *db.Db, statsGetter stats.IUserWalletsGetter) base.HandlerFun
 
 		// prepare response
 		resp = UserResponse{
-			ID:           fmt.Sprint(user.ID),
 			Phone:        phone,
 			Status:       string(user.Status),
+			KYC:          string(status),
 			RegisteredAt: user.RegisteredAt.Unix(),
 			Wallets:      WalletsStatsView(userStats),
 		}

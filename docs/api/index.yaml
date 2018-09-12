@@ -673,10 +673,6 @@ components:
         - password
     User:
       properties:
-        id:
-          type: string
-          description: Unique user identifier
-          example: 8b92eaaf62064a2a9df4b2a2d170d53e
         phone:
           type: string
           format: phone
@@ -686,6 +682,8 @@ components:
           type: string
           description: 'User status, shows only `active` right now'
           example: active
+        kyc:
+          $ref: '#/components/schemas/UserKYCStatus'
         registered_at:
           $ref: '#/components/schemas/Timestamp'
           description: Date when user account has been activated
@@ -835,6 +833,7 @@ components:
         - btc
         - btcc
         - zam
+
     UserCreateWalletRequest:
       properties:
         coin:
@@ -844,6 +843,7 @@ components:
           description: Optional name for user wallet
       required:
         - coin
+
     UserWalletData:
       type: object
       properties:
