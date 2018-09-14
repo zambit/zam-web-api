@@ -178,9 +178,10 @@ func getMapper(a IGenericQueryMaker) *reflectx.Mapper {
 	if tx, ok := a.(*sqlx.Tx); ok {
 		return tx.Mapper
 	}
-	panic(fmt.Errorf(
-		"given generic query maker interface of type %T does have underlying type of either *sqlx.DB not *sqlx.Tx", a,
-	))
+	if db, ok := a.(*Db); ok {
+		return db.Mapper
+	}
+	panic(fmt.Errorf("given generic query maker interface of type %T does't have Mapper attribute", a))
 }
 
 type rowCreatorType func(err error, rows *sql.Rows, mapper *reflectx.Mapper) *sqlx.Row
