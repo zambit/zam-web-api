@@ -5,6 +5,7 @@ import (
 	"git.zam.io/wallet-backend/web-api/config/isc"
 	"git.zam.io/wallet-backend/web-api/pkg/services/broker"
 	"git.zam.io/wallet-backend/web-api/pkg/services/broker/redismq"
+	"git.zam.io/wallet-backend/web-api/pkg/services/sentry"
 	"github.com/gin-gonic/gin"
 	"github.com/go-redis/redis"
 	"github.com/pkg/errors"
@@ -14,7 +15,12 @@ import (
 )
 
 // Provide provides actual broker implementation depending on configuration
-func Broker(container *dig.Container, config isc.Scheme, logger logrus.FieldLogger) (b broker.IBroker, e error) {
+func Broker(
+	container *dig.Container,
+	config isc.Scheme,
+	reporter sentry.IReporter,
+	logger logrus.FieldLogger,
+) (b broker.IBroker, e error) {
 	switch {
 	case strings.Contains(config.BrokerURI, "redis"):
 		fallthrough
@@ -24,6 +30,7 @@ func Broker(container *dig.Container, config isc.Scheme, logger logrus.FieldLogg
 			return
 		}
 		b = redismq.New(redis.NewClient(o), logger)
+		b.AddMiddleware(broker.NewReportMiddleware(reporter, nil))
 	case config.BrokerURI == "":
 		return nil, nil
 	default:

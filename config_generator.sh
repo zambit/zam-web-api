@@ -13,6 +13,12 @@ server:
         method: HS256
     notificator:
         url: '$NOTIFICATIONS_URL'
+
+Logging:
+    ErrorReporter:
+        DSN: '$SENTRY_DSN'
+    LogLevel: debug
+
 isc:
     brokeruri: '$BROKER_URI'
     statsenabled: true
