@@ -32,8 +32,12 @@ type Delivery interface {
 // ConsumeFunc
 type ConsumeFunc func(IBroker, Delivery) error
 
+// MiddlewareFunc
+type MiddlewareFunc func(b IBroker, d Delivery, next ConsumeFunc) error
+
 // IBroker
 type IBroker interface {
+	AddMiddleware(middleware MiddlewareFunc)
 	Consume(resource, action string, consumer ConsumeFunc) error
 	StopConsumer(resource, action string) error
 

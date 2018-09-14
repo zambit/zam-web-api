@@ -33,6 +33,7 @@ type Broker struct {
 
 	guard  sync.RWMutex
 	queues map[string]rmq.Queue
+	mwares []broker.MiddlewareFunc
 }
 
 func New(c *redis.Client, logger logrus.FieldLogger) broker.IBroker {
@@ -116,16 +117,24 @@ type outMessage struct {
 	Headers  map[string]string `json:"headers"`
 }
 
+func (c *Broker) AddMiddleware(middleware broker.MiddlewareFunc) {
+	c.guard.Lock()
+	defer c.guard.Unlock()
+	c.mwares = append(c.mwares, middleware)
+}
+
 func (c *Broker) Consume(resource, action string, consumer broker.ConsumeFunc) error {
 	return wrapRmqPanicAsErr(func() error {
 		queueName := fmt.Sprintf(queueNamePattern, resource, action)
 
+		var mws []broker.MiddlewareFunc
 		alreadyConsuming := false
 		func() {
 			c.guard.RLock()
 			defer c.guard.RUnlock()
 
 			_, alreadyConsuming = c.queues[queueName]
+			mws = c.mwares
 		}()
 		if alreadyConsuming {
 			return errors.New("redismq: already consuming")
@@ -160,7 +169,7 @@ func (c *Broker) Consume(resource, action string, consumer broker.ConsumeFunc) e
 				}
 			}()
 
-			err = consumer(
+			err = applyMiddlewares(consumer, mws)(
 				c,
 				&delivery{
 					c.logger.WithField("module", "broker.redismq.delivery").WithField("ident", ident),
@@ -269,4 +278,18 @@ func wrapRmqPanicAsErr(wrappable func() error) (err error) {
 	}()
 
 	return wrappable()
+}
+
+func applyMiddleware(handler broker.ConsumeFunc, mw broker.MiddlewareFunc) broker.ConsumeFunc {
+	return func(b broker.IBroker, d broker.Delivery) error {
+		return mw(b, d, handler)
+	}
+}
+
+func applyMiddlewares(handler broker.ConsumeFunc, middlewares []broker.MiddlewareFunc) broker.ConsumeFunc {
+	for i := len(middlewares) - 1; i >= 0; i++ {
+		handler = applyMiddleware(handler, middlewares[i])
+	}
+
+	return handler
 }
