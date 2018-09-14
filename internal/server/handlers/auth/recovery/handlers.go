@@ -88,7 +88,7 @@ func StartHandlerFactory(
 		},
 		func(tx db.ITx, request interface{}) (user models.User, err error) {
 			params := request.(*StartRequest)
-			return models.GetUserByPhone(tx, params.Phone, true)
+			return models.GetUserByPhoneAndStatus(tx, params.Phone, models.UserStatusActive, true)
 		},
 		getUserState,
 		func(tx db.ITx, storage nosql.IStorage, user models.User, newState confflow.State, params interface{}) (err error) {
@@ -129,7 +129,7 @@ func VerifyHandlerFactory(
 		},
 		func(tx db.ITx, request interface{}) (user models.User, err error) {
 			params := request.(*VerifyRequest)
-			return models.GetUserByPhone(tx, params.Phone, true)
+			return models.GetUserByPhoneAndStatus(tx, params.Phone, models.UserStatusActive, true)
 		},
 		getUserState,
 		func(tx db.ITx, storage nosql.IStorage, user models.User, newState confflow.State, params interface{}) (err error) {
@@ -167,7 +167,7 @@ func FinishHandlerFactory(d *db.Db, storage nosql.IStorage, notifier isc.IEventN
 		},
 		func(tx db.ITx, request interface{}) (user models.User, err error) {
 			params := request.(*FinishRequest)
-			return models.GetUserByPhone(tx, params.Phone, true)
+			return models.GetUserByPhoneAndStatus(tx, params.Phone, models.UserStatusActive, true)
 		},
 		getUserState,
 		func(tx db.ITx, storage nosql.IStorage, user models.User, newState confflow.State, params interface{}) error {

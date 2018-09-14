@@ -64,12 +64,13 @@ func GetUserByPhone(tx db.ITx, phone string, forUpdate ...bool) (user User, err 
 }
 
 // GetUserByPhone get user by raw phone and status name
-func GetUserByPhoneAndStatus(tx db.ITx, phone string, status UserStatusName) (user User, err error) {
+func GetUserByPhoneAndStatus(tx db.ITx, phone string, status UserStatusName, forUpdate ...bool) (user User, err error) {
 	phoneFormatted, err := types.NewPhone(phone)
 	if err != nil {
 		return
 	}
-	user, err = doUserQuery(tx, `u.phone = $1 AND us.name = $2`, false, phoneFormatted, status)
+	forUpdateCoerced := len(forUpdate) > 0 && forUpdate[0]
+	user, err = doUserQuery(tx, `u.phone = $1 AND us.name = $2`, forUpdateCoerced, phoneFormatted, status)
 	return
 }
 
