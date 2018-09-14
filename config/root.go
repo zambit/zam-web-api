@@ -1,8 +1,10 @@
 package config
 
 import (
+	"git.zam.io/wallet-backend/common/pkg/types"
 	"git.zam.io/wallet-backend/web-api/config/db"
 	"git.zam.io/wallet-backend/web-api/config/isc"
+	"git.zam.io/wallet-backend/web-api/config/logging"
 	"git.zam.io/wallet-backend/web-api/config/server"
 	"github.com/spf13/viper"
 	"time"
@@ -11,7 +13,7 @@ import (
 // RootScheme is the scheme used by top-level app
 type RootScheme struct {
 	// Env describes current environment
-	Env string
+	Env types.Environment
 
 	// DB connection description
 	DB db.Scheme
@@ -21,11 +23,15 @@ type RootScheme struct {
 
 	// ISC contains inter-process communication params
 	ISC isc.Scheme
+
+	// Logging logging configuration
+	Logging logging.Scheme
 }
 
 // Init set default values
 func Init(v *viper.Viper) {
 	v.SetDefault("Env", "test")
+	v.SetDefault("Logging.LogLevel", "info")
 	v.SetDefault("Db.Uri", "postgresql://postgres:postgres@localhost:5432/postgres")
 	v.SetDefault("Server.Host", "localhost")
 	v.SetDefault("Server.Port", 9999)

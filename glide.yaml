@@ -54,5 +54,6 @@ import:
   version: v3.2.0
   subpackages:
   - .git/
+- package: github.com/getsentry/raven-go
 testImport:
 - package: github.com/spf13/pflag

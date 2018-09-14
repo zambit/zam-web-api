@@ -2,10 +2,12 @@ package server
 
 import (
 	"fmt"
+	"git.zam.io/wallet-backend/common/pkg/types"
 	"git.zam.io/wallet-backend/web-api/cmd/utils"
 	"git.zam.io/wallet-backend/web-api/config"
 	dbconf "git.zam.io/wallet-backend/web-api/config/db"
 	iscconf "git.zam.io/wallet-backend/web-api/config/isc"
+	"git.zam.io/wallet-backend/web-api/config/logging"
 	serverconf "git.zam.io/wallet-backend/web-api/config/server"
 	internalproviders "git.zam.io/wallet-backend/web-api/internal/providers"
 	_ "git.zam.io/wallet-backend/web-api/internal/server/handlers"
@@ -52,12 +54,15 @@ func serverMain(cfg config.RootScheme) (err error) {
 	})
 
 	// provide configuration and her parts
-	utils.MustProvide(c, func() (config.RootScheme, dbconf.Scheme, iscconf.Scheme, serverconf.Scheme) {
-		return cfg, cfg.DB, cfg.ISC, cfg.Server
+	utils.MustProvide(c, func() (config.RootScheme, dbconf.Scheme, iscconf.Scheme, serverconf.Scheme, logging.Scheme, types.Environment) {
+		return cfg, cfg.DB, cfg.ISC, cfg.Server, cfg.Logging, cfg.Env
 	})
 
 	// provide root logger
 	utils.MustProvide(c, providers.RootLogger)
+
+	// provide sentry reporter
+	utils.MustProvide(c, providers.Reporter)
 
 	// provide ordinal db connection
 	utils.MustProvide(c, providers.DB)

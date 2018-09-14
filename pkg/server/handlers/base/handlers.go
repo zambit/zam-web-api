@@ -2,6 +2,7 @@ package base
 
 import (
 	"git.zam.io/wallet-backend/common/pkg/merrors"
+	"git.zam.io/wallet-backend/web-api/pkg/services/sentry"
 	"github.com/gin-gonic/gin"
 	"github.com/go-playground/validator"
 	"io"
@@ -22,14 +23,16 @@ type BaseResponse struct {
 // WrapHandler wraps our into gin form, dealing with returned values
 func WrapHandler(handler HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// perform handler
-		val, code, err := handler(c)
+		sentry.Global().CapturePanic(func() {
+			// perform handler
+			val, code, err := handler(c)
 
-		// post-process response
-		code, response := postProcessResult(c, val, code, err)
+			// post-process response
+			code, response := postProcessResult(c, val, code, err)
 
-		// write response object
-		c.JSON(code, response)
+			// write response object
+			c.JSON(code, response)
+		}, nil)
 	}
 }
 
@@ -38,21 +41,23 @@ func WrapHandler(handler HandlerFunc) gin.HandlerFunc {
 // If either err or http code are returned, request will be aborted
 func WrapMiddleware(handler HandlerFunc) gin.HandlerFunc {
 	return func(c *gin.Context) {
-		// perform handler
-		val, code, err := handler(c)
+		sentry.Global().CapturePanic(func() {
+			// perform handler
+			val, code, err := handler(c)
 
-		// zero values means that middleware passes further
-		if val == nil && code == 0 && err == nil {
-			c.Next()
-			return
-		}
+			// zero values means that middleware passes further
+			if val == nil && code == 0 && err == nil {
+				c.Next()
+				return
+			}
 
-		// post-process response
-		code, response := postProcessResult(c, val, code, err)
+			// post-process response
+			code, response := postProcessResult(c, val, code, err)
 
-		// write response object
-		c.JSON(code, response)
-		c.Abort()
+			// write response object
+			c.JSON(code, response)
+			c.Abort()
+		}, nil)
 	}
 }
 
@@ -101,6 +106,11 @@ func postProcessResult(c *gin.Context, val interface{}, code int, err error) (in
 				code = http.StatusInternalServerError
 			}
 		}
+	}
+
+	// report error only if it considered to be internal, use global sentry instance
+	if code >= 500 && err != nil {
+		sentry.Global().ReportErr(err, nil)
 	}
 
 	// fallback onto default it nothing else determined
