@@ -22,6 +22,7 @@ var (
 const (
 	verificationCodeKeyPattern = "user:%s:recovery:code"
 	tokenKeyPattern            = "user:%s:recovery:token"
+	notifSendTOKeyPattern      = "user:%s:recovery:notif_to"
 )
 
 func verificationCodeKey(user models.User) string {
@@ -73,6 +74,7 @@ func StartHandlerFactory(
 	generator notifications.IGenerator,
 	storage nosql.IStorage,
 	storageExpire time.Duration,
+	notifSendTO time.Duration,
 ) base.HandlerFunc {
 	resources := confflow.ExternalResources{
 		Database:  d,
@@ -101,6 +103,8 @@ func StartHandlerFactory(
 		func(user models.User, code string) error {
 			return notifier.PasswordRecoveryVerificationRequested(fmt.Sprint(user.ID), string(user.Phone), code)
 		},
+		notifSendTO,
+		notifSendTOKeyPattern,
 		tokenKeyPattern,
 	)
 }

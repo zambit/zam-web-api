@@ -44,6 +44,7 @@ const (
 	signUpToken      = "SIGNUPTOKENTOKENTOKEN"
 	signUpToken2     = "2222SIGNUPTOKENTOKENTOKEN222"
 	authToken        = "AUTH TOKEN"
+	sendAttemptTO    = time.Minute / 2
 )
 
 func TestSignUpHandlers(t *testing.T) {
@@ -106,7 +107,7 @@ var _ = Describe("Given user signup flow", func() {
 				notifier isc.IEventNotificator,
 				generator notifications.IGenerator,
 			) base.HandlerFunc {
-				return StartHandlerFactory(d, notifier, generator, storage, time.Minute)
+				return StartHandlerFactory(d, notifier, generator, storage, time.Minute, sendAttemptTO)
 			},
 		)
 		BeforeEachCProvide(func(d *db.Db) models.User {
@@ -127,6 +128,8 @@ var _ = Describe("Given user signup flow", func() {
 				// setup mocks
 				generator.On("RandomCode").Return(confirmCode)
 				storage.On("SetWithExpire", "user:"+validPhone2+":signup:code", confirmCode, mock.Anything).Return(nil)
+				storage.On("Get", "user:"+validPhone2+":signup:notif_to").Return(nil, nosql.ErrNoSuchKeyFound)
+				storage.On("SetWithExpire", "user:"+validPhone2+":signup:notif_to", mock.Anything, sendAttemptTO).Return(nil)
 				storage.On("Delete", "user:"+validPhone2+":signup:token").Return(nil)
 			})
 

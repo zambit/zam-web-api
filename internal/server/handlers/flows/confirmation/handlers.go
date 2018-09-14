@@ -32,6 +32,10 @@ var (
 		Code:    http.StatusBadRequest,
 		Message: "such action not allowed",
 	}
+	errToFrequent = base.ErrorView{
+		Code:    http.StatusBadRequest,
+		Message: "too frequent attempt",
+	}
 )
 
 type ParamsFactory func() interface{}
@@ -52,6 +56,8 @@ func StartHandlerFactory(
 	verifCodeExpire time.Duration,
 	verifCodeKeyPattern string,
 	verifEventSender func(user models.User, code string) error,
+	nextSendTO time.Duration,
+	nextSendTOKeyPattern string,
 	finishTokenKeyPattern string,
 ) base.HandlerFunc {
 	return func(c *gin.Context) (resp interface{}, code int, err error) {
@@ -71,19 +77,40 @@ func StartHandlerFactory(
 				return err
 			}
 
+			// check is this start attempt occurs later then specified timeout (nextSendTO)
+			_, err = resources.Storage.Get(genNextSendTOKey(nextSendTOKeyPattern, user))
+			if err == nosql.ErrNoSuchKeyFound { // process positive case first
+				// that't means that T/O already expired and request may be processed
+				err = nil
+			} else if err == nil { // then process deterministic negative
+				// if T/O record found, that's mean T/O not expired
+				err = errToFrequent
+				return err
+			} else { // then non-deterministic case (any unexpected error)
+				return err
+			}
+
+			// adds notification send T/O
+			err = resources.Storage.SetWithExpire(
+				genNextSendTOKey(nextSendTOKeyPattern, user), map[string]interface{}{}, nextSendTO,
+			)
+			if err != nil {
+				return err
+			}
+
 			// issue new confirmation code
 			code := resources.Generator.RandomCode()
 
 			// save it in storage
 			err = resources.Storage.SetWithExpire(
-				verificationCodeKey(verifCodeKeyPattern, user), code, verifCodeExpire,
+				genVerificationCodeKey(verifCodeKeyPattern, user), code, verifCodeExpire,
 			)
 			if err != nil {
 				return err
 			}
 
 			// clear finish token
-			err = resources.Storage.Delete(finishTokenKey(finishTokenKeyPattern, user))
+			err = resources.Storage.Delete(genFinishTokenKey(finishTokenKeyPattern, user))
 			if err != nil {
 				if err == nosql.ErrNoSuchKeyFound {
 					err = nil
@@ -139,7 +166,7 @@ func VerifyHandlerFactory(
 			}
 
 			// validate passed verification code
-			codeKey := verificationCodeKey(verifCodeKeyPattern, user)
+			codeKey := genVerificationCodeKey(verifCodeKeyPattern, user)
 			code, err := resources.Storage.Get(codeKey)
 			if err == nosql.ErrNoSuchKeyFound || getCodeFromParams(params) != code {
 				err = errFieldWrongCode
@@ -163,7 +190,7 @@ func VerifyHandlerFactory(
 
 			// generate new finish token
 			token := resources.Generator.RandomToken()
-			tokenKey := finishTokenKey(finishTokenKeyPattern, user)
+			tokenKey := genFinishTokenKey(finishTokenKeyPattern, user)
 			err = resources.Storage.SetWithExpire(tokenKey, token, finishTokenExpire)
 			if err != nil {
 				return
@@ -216,7 +243,7 @@ func FinishHandlerFactory(
 			}
 
 			// validate token
-			tokenKey := finishTokenKey(finishTokenKeyPattern, user)
+			tokenKey := genFinishTokenKey(finishTokenKeyPattern, user)
 			token, err := resources.Storage.Get(tokenKey)
 			if err == nosql.ErrNoSuchKeyFound || getTokenFromParams(params) != token {
 				err = base.NewFieldErr("body", tokenFieldName, fmt.Sprintf("%s is wrong", tokenFieldName))
@@ -275,10 +302,14 @@ func paramsOrErr(
 	return
 }
 
-func verificationCodeKey(pattern string, user models.User) string {
+func genNextSendTOKey(pattern string, user models.User) string {
 	return fmt.Sprintf(pattern, user.Phone)
 }
 
-func finishTokenKey(pattern string, user models.User) string {
+func genVerificationCodeKey(pattern string, user models.User) string {
+	return fmt.Sprintf(pattern, user.Phone)
+}
+
+func genFinishTokenKey(pattern string, user models.User) string {
 	return fmt.Sprintf(pattern, user.Phone)
 }

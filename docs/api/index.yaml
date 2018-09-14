@@ -25,6 +25,8 @@ paths:
             Possible error messages:
               * Wrong parametres
                 - Description: parametres validation errors
+              * Too frequent attempt
+                - Description: this request arrives to fast after previous request, wait until timeout
               * User already exists
                 ```json
                 {
@@ -253,6 +255,8 @@ paths:
         '400':
           description: |
             Possible error messages:
+              * Too frequent attempt
+                - Description: this request arrives to fast after previous request, wait until timeout
               * Wrong parametres
                 - Description: parametres validation errors
               * User not found

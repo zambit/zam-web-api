@@ -24,6 +24,7 @@ var (
 const (
 	verificationCodeKeyPattern = "user:%s:signup:code"
 	signupTokenKeyPatten       = "user:%s:signup:token"
+	notifSendTOKeyPatten       = "user:%s:signup:notif_to"
 )
 
 func getUserState(tx db.ITx, storage nosql.IStorage, user models.User) (state confflow.State, err error) {
@@ -49,6 +50,7 @@ func StartHandlerFactory(
 	generator notifications.IGenerator,
 	storage nosql.IStorage,
 	storageExpire time.Duration,
+	notifSendTO time.Duration,
 ) base.HandlerFunc {
 	resources := confflow.ExternalResources{
 		Database:  d,
@@ -129,6 +131,8 @@ func StartHandlerFactory(
 		func(user models.User, code string) error {
 			return notifier.RegistrationVerificationRequested(fmt.Sprint(user.ID), string(user.Phone), code)
 		},
+		notifSendTO,
+		notifSendTOKeyPatten,
 		signupTokenKeyPatten,
 	)
 }
