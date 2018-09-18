@@ -9,10 +9,12 @@ import:
 - package: github.com/go-playground/validator
   version: 9.20.2
 - package: github.com/go-redis/redis
+
 - package: github.com/golang-migrate/migrate
-  subpackages:
-  - database/postgres
-  - source/file
+  vsc: git
+  repo: https://github.com/golang-migrate/migrate
+  version: v3.5
+
 - package: github.com/google/uuid
   version: 0.2.0
 - package: github.com/lib/pq
