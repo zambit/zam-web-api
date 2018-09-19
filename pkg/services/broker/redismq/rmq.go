@@ -287,7 +287,7 @@ func applyMiddleware(handler broker.ConsumeFunc, mw broker.MiddlewareFunc) broke
 }
 
 func applyMiddlewares(handler broker.ConsumeFunc, middlewares []broker.MiddlewareFunc) broker.ConsumeFunc {
-	for i := len(middlewares) - 1; i >= 0; i++ {
+	for i := len(middlewares) - 1; i >= 0; i-- {
 		handler = applyMiddleware(handler, middlewares[i])
 	}
 
