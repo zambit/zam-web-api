@@ -13,10 +13,10 @@ import (
 )
 
 // New creates backend guessing concrete type from URI, panic if guess is failed
-func New(uri string) old_notifications.ISender {
+func New(uri string) (n old_notifications.ISender, err error) {
 	parsed, err := url.Parse(uri)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	var transport notifications.ITransport
@@ -26,15 +26,18 @@ func New(uri string) old_notifications.ISender {
 		case strings.Contains(parsed.Host, "slack"):
 			transport = slack.New(uri)
 		case strings.Contains(parsed.Host, "api.twilio.com"):
-			transport = twilio.New(uri)
+			transport, err = twilio.New(uri)
 		}
 	case "file":
 		transport = file.New(parsed.Path)
 	}
 
 	if transport == nil {
-		panic(fmt.Errorf("unsupported simple-text transport specified with %s", uri))
+		err = fmt.Errorf("unsupported simple-text transport specified with %s", uri)
 	}
 
-	return stext.New(transport)
+	if err == nil {
+		n = stext.New(transport)
+	}
+	return
 }

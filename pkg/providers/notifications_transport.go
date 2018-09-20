@@ -16,7 +16,7 @@ func NotificationsTransport(cfg server.NotificatorScheme) (notifications.ITransp
 	uri := cfg.URL
 	parsed, err := url.Parse(uri)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 
 	var transport notifications.ITransport
@@ -26,7 +26,7 @@ func NotificationsTransport(cfg server.NotificatorScheme) (notifications.ITransp
 		case strings.Contains(parsed.Host, "slack"):
 			transport = slack.New(uri)
 		case strings.Contains(parsed.Host, "api.twilio.com"):
-			transport = twilio.New(uri)
+			transport, err = twilio.New(uri)
 		}
 	case "file":
 		transport = file.New(parsed.Path)

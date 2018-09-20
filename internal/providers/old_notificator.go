@@ -9,9 +9,9 @@ import (
 )
 
 // Notificator
-func Notificator(conf serverconf.Scheme, logger logrus.FieldLogger) notifications.ISender {
+func Notificator(conf serverconf.Scheme, logger logrus.FieldLogger) (notifications.ISender, error) {
 	if conf.Notificator.URL == "" {
-		return stub.New(logger)
+		return stub.New(logger), nil
 	} else {
 		return factory.New(conf.Notificator.URL)
 	}
