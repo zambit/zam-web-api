@@ -12,7 +12,7 @@ func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 	var configPath string
 
 	command := cobra.Command{
-		Use: "wallet-api",
+		Use: "web-api",
 		PersistentPreRunE: func(cmd *cobra.Command, args []string) (err error) {
 			if err = cmd.ParseFlags(args); err != nil {
 				return
@@ -37,6 +37,7 @@ func Create(v *viper.Viper, cfg *config.RootScheme) cobra.Command {
 			// map values which was build by viper from different source into single configuration object
 			return v.Unmarshal(cfg)
 		},
+		Version:          cfg.Version.String(),
 		TraverseChildren: true,
 	}
 

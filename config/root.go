@@ -6,12 +6,16 @@ import (
 	"git.zam.io/wallet-backend/web-api/config/isc"
 	"git.zam.io/wallet-backend/web-api/config/logging"
 	"git.zam.io/wallet-backend/web-api/config/server"
+	"github.com/blang/semver"
 	"github.com/spf13/viper"
 	"time"
 )
 
 // RootScheme is the scheme used by top-level app
 type RootScheme struct {
+	// Version current version, default is set during build process
+	Version semver.Version
+
 	// Env describes current environment
 	Env types.Environment
 

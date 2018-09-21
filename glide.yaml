@@ -9,12 +9,9 @@ import:
 - package: github.com/go-playground/validator
   version: 9.20.2
 - package: github.com/go-redis/redis
-
 - package: github.com/golang-migrate/migrate
-  vsc: git
-  repo: https://github.com/golang-migrate/migrate
   version: v3.5
-
+  repo: https://github.com/golang-migrate/migrate
 - package: github.com/google/uuid
   version: 0.2.0
 - package: github.com/lib/pq
@@ -57,5 +54,9 @@ import:
   subpackages:
   - .git/
 - package: github.com/getsentry/raven-go
+- package: github.com/hashicorp/go-version
+  version: v1.0.0
+- package: github.com/blang/semver
+  version: v3.5.1
 testImport:
 - package: github.com/spf13/pflag
