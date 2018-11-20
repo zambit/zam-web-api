@@ -17,6 +17,6 @@ type FinishRequest struct {
 	Phone string `json:"phone" validate:"required,phone"`
 	Token string `json:"signup_token" validate:"required"`
 
-	Password             string `validate:"required,min=6,alphanum" json:"password"`
+	Password             string `validate:"required,min=6" json:"password"`
 	PasswordConfirmation string `validate:"required,eqfield=Password" json:"password_confirmation" `
 }
