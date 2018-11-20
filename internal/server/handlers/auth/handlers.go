@@ -1,6 +1,9 @@
 package auth
 
 import (
+	"strconv"
+	"time"
+
 	"git.zam.io/wallet-backend/web-api/db"
 	"git.zam.io/wallet-backend/web-api/internal/models/kyc"
 	models "git.zam.io/wallet-backend/web-api/internal/models/user"
@@ -10,7 +13,6 @@ import (
 	"git.zam.io/wallet-backend/web-api/pkg/services/sessions"
 	"github.com/gin-gonic/gin"
 	"github.com/pkg/errors"
-	"time"
 )
 
 var errWrongUserOrPass = base.NewFieldErr("body", "phone", "either phone or password are invalid")
@@ -151,6 +153,7 @@ func StatFactory(d *db.Db, statsGetter stats.IUserWalletsGetter) base.HandlerFun
 
 		// prepare response
 		resp = UserResponse{
+			ID:           strconv.FormatInt(user.ID, 10),
 			Phone:        phone,
 			Status:       string(user.Status),
 			KYC:          string(status),
